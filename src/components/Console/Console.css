@@ -1,0 +1,15 @@
+/*Console.css*/
+
+.console {
+    background-color: var(--gray);
+}
+
+.console-body {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+}
+
+.console-collapse-btn {
+    width: 100%;
+    text-align: center;
+}
