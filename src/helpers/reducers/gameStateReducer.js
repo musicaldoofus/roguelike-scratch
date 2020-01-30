@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useReducer, useMemo } from 'react';
-import initGameState from '../initGameState';
-import toCoords, { toIndex } from '../toCoords';
+import initGameState from '../initModels/initGameState';
+import beastDictionary from '../dictionaries/beastDictionary';
+import toCoords, { toIndex } from '../utilityLambdas/toCoords';
+import rollDie from '../utilityLambdas/rollDie';
+
+/*
+todo: add 'rolling' logic and compare functions for moves
+*/
 
 const GameStateContext = createContext();
 
@@ -18,49 +24,63 @@ const gameStateReducer = (gameState, action) => {
           .filter(key => !filterKey.test(key))
           .map(key => [key, obj[key]])
         );
+    
     const gameRestFromLocation = filteredRest(gameState, /location/);
+    
     const handleTargetBeast = (beast) => {
         const targetBeast = beast ? beast : action.targetBeast;
         const locationRest = filteredRest(gameState.location, /(nearbyBeasts|targetState)/);
-        const targetState = false;
+        const gameRest = filteredRest(addLog({ctx: 'room', value: `Targeting ${targetBeast.baseTitle}.`}), /location/);
         const updatedBeast = Object.assign({}, targetBeast, {isTargeted: true});
-        const otherBeasts = gameState.location.nearbyBeasts.filter(b => b.key !== targetBeast.key).map(b => Object.assign({}, b, {isTargeted: false}));
-        const nearbyBeasts = otherBeasts.concat(updatedBeast);
-        const location = {
-            targetState,
-            nearbyBeasts,
-            ...locationRest
-        }
+        
         return {
-            ...gameRestFromLocation,
-            location
+            location: {
+                targetState: false,
+                nearbyBeasts: gameState.location.nearbyBeasts.filter(b => b.key !== targetBeast.key).map(b => Object.assign({}, b, {isTargeted: false})).concat(updatedBeast),
+                ...locationRest
+            },
+            ...gameRest
         }
     }
-    const addLog = (msg) => {
-        const gameRest = filteredRest(gameState, /log/);
-        const {ctx, value} = msg ? msg : action;
-        if (value === '') {
-            console.warn(`Log ignored. Must supply a valid String for ${JSON.stringify(action)}`);
-            return gameState;
+
+    const addLog = (msgs) => {
+        //console.log('addMsg', msgs);
+        if (!msgs) throw new Error('Must include msgs');
+        if (Array.isArray(msgs)) {
+            msgs.forEach(msg => {
+                if (!msg.ctx) throw new Error(`You must provide context in ${JSON.stringify(msg)}`);
+            });
         }
-        const log = {
-            messages: gameState.log.messages.concat({
-                ctx: ctx ? ctx : 'gameStateReducer',
-                value
-            })
-        };
+        else if (!msgs.ctx)  throw new Error(`You must provide context in ${JSON.stringify(msgs)}`);
+        const gameRest = filteredRest(gameState, /log/);
+        const logRest = filteredRest(gameState.log, /messages/);
+        
         return {
-            log,
+            log: {
+                messages: gameState.log.messages.concat([].concat(msgs)),
+                ...logRest
+            },
             ...gameRest
+        };
+    }
+    
+    const attackFrom = (params) => {
+        return {
+            
         };
     }
 
     switch (action.type) {
-        case 'addLog': return addLog();
+        case 'printGameState': {
+            console.log('print gameState', gameState);
+            return addLog({ctx: 'console', value: 'Printed gameState'});
+        }
+        case 'addLog': return addLog(action);
 
         case 'clearRoom': {
-            const gameRest = filteredRest(gameState, /location/);
+            const gameRest = filteredRest(addLog({ctx: 'console', value: 'Cleared the room.'}), /location/);
             const locationRest = filteredRest(gameState.location, /nearbyBeasts/);
+            
             return {
                 location: {
                     nearbyBeasts: [],
@@ -71,6 +91,7 @@ const gameStateReducer = (gameState, action) => {
         }
 
         case 'pushBeastToRoom': {
+            const gameRest = filteredRest(addLog({ctx: 'console', value: `Pushing ${action.beast.baseTitle} to the room.`}), /location/);
             const loc = gameState.location;
             const room = loc.rooms[action.roomIndex];
             const dimensionality = room.dimensionality;
@@ -80,12 +101,13 @@ const gameStateReducer = (gameState, action) => {
                 .filter(t => typeof t === 'object' ? t : false);
             const updatedBeast = Object.assign({}, action.beast, {coords: openTiles[Math.floor(Math.random() * openTiles.length)]}); //extend - allow to check loc.rooms[loc.level - 1].beastGenerationRules
             const nearbyBeasts = loc.nearbyBeasts.filter(b => b.key !== action.beast.key).concat(updatedBeast);
+            
             return {
                 location: {
                     nearbyBeasts,
                     ...locationRest
                 },
-                ...gameRestFromLocation
+                ...gameRest
             };
         }
 
@@ -96,8 +118,9 @@ const gameStateReducer = (gameState, action) => {
                 const tileCoords = toCoords(action.index, dimensionality);
                 return coords.x === tileCoords.x && coords.y === tileCoords.y;
             });
+
             if (beastOnTile.length > 0) return handleTargetBeast(beastOnTile[0]);
-            else return addLog({value: JSON.stringify(action.tile)});
+            else return addLog({ctx: 'roomHUD', value: JSON.stringify(action.tile)});
         }
 
         case 'handleMoveActor': {
@@ -111,13 +134,14 @@ const gameStateReducer = (gameState, action) => {
                 || (dir === 'right' && x === dimensionality - 2) //confirm
                 || (dir === 'left' && x === 1)
                 || (dir === 'down' && y === dimensionality - 2)
-                ) return addLog({value: 'You bump into a wall.'});
+                ) return addLog({ctx: 'room', value: 'You bump into a wall.'});
             const dX = dir === 'left' ? -1 : dir === 'right' ? 1 : 0;
             const dY = dir === 'up' ? -1 : dir === 'down' ? 1 : 0;
             const targetTile = room.tiles[toIndex({x: x + dX, y: y + dY}, dimensionality)];
-            if (targetTile.type !== 'none') return addLog({value: 'Whups!'});
+            if (targetTile.type !== 'none') return addLog({ctx: 'room', value: 'Whups!'});
             const gameRest = filteredRest(gameState, /player/);
             const playerRest = filteredRest(gameState.player, /roomCoords/);
+           
             return {
                 player: {
                     roomCoords: {
@@ -133,6 +157,7 @@ const gameStateReducer = (gameState, action) => {
         case 'openTargetBeast': {
             const locationRest = filteredRest(gameState.location, /targetState/);
             const targetState = true;
+            
             return {
                 location: {
                     targetState,
@@ -142,31 +167,36 @@ const gameStateReducer = (gameState, action) => {
             };
         }
 
-        case 'handleTargetBeast': {
-            return handleTargetBeast();
-        }
+        case 'handleTargetBeast': return handleTargetBeast();
 
         case 'adjustHP': { //consider modifying to 'adjustStat'
-            console.log('adjustHP')
             if (action.targetActor === 'npc') {
                 const loc = gameState.location;
                 const nearbyBeasts = loc.nearbyBeasts;
                 const locationRest = filteredRest(loc, /nearbyBeasts/);
                 const beastTarget = nearbyBeasts.filter(b => b.isTargeted)[0]; //extend to allow looping to damage/apply damage to other creatures (or consider one attack per beast in single dispatch call)
-                const updatedBeast = Object.assign({}, beastTarget, {hp: beastTarget.hp + action.amt});
-                const restBeasts = nearbyBeasts.filter(b => !b.isTargeted).concat(updatedBeast);
+                
+                const weapon = gameState.player.inventory.filter(item => item.type === 'weapon' && item.isEquipped)[0];
+                const amtFromAttack = rollDie(weapon.damage);
+                
+                const updatedBeast = Object.assign({}, beastTarget, {hp: beastTarget.hp - amtFromAttack});
+                const msg = updatedBeast.hp > 0 ? `You attack the ${updatedBeast.baseTitle}.` : beastDictionary[updatedBeast.baseTitle].dyingMessage;
+                const rollMsg = `Rolled ${weapon.damage} for ${amtFromAttack} damage.`;
+                const gameRest = filteredRest(addLog([{ctx: 'room', value: msg}, {ctx: 'roller', value: rollMsg}]), /(location)/);
+                
                 return {
                     location: {
-                        nearbyBeasts: restBeasts,
+                        nearbyBeasts: nearbyBeasts.filter(b => !b.isTargeted).concat(updatedBeast.hp > 0 ? updatedBeast : []),
                         ...locationRest
                     },
-                    ...gameRestFromLocation
-                }
+                    ...gameRest
+                };
             }
             else {
                 const gameRest = filteredRest(gameState, /player/);
                 const playerRest = filteredRest(gameState.player, /vitalStats/);
                 const vitalStatsRest = filteredRest(gameState.player.vitalStats, /hp/);
+                
                 return {
                     player: {
                         vitalStats: {
@@ -180,9 +210,49 @@ const gameStateReducer = (gameState, action) => {
             }
         }
 
-        default: {
-            throw new Error(`Must include a valid action.type in action ${JSON.stringify(action)}`);
+        case 'handleToggleInventory': {
+            const gameRest = filteredRest(gameState, /focusMode/);
+            const focusMode = gameState.focusMode === 'inventory' ? null : 'inventory';
+            
+            return {
+                focusMode,
+                ...gameRest
+            };
         }
+
+        case 'handleClosePanel': {
+            const gameRest = filteredRest(gameState, /focusMode/);
+            
+            return {
+                focusMode: null,
+                ...gameRest
+            }
+        }
+
+        case 'toggleConsole': {
+            const gameRest = filteredRest(gameState, /focusMode/);
+            const focusMode = gameState.focusMode === 'console' ? null : 'console'
+            
+            return {
+                focusMode,
+                ...gameRest
+            }
+        }
+
+        case 'applyAction': {
+            const value = `You ${action.itmAction.type} the ${action.item.baseTitle}${action.target ? ` ${action.target.verb} the ${action.target.baseTitle}` : ''}.`;
+            const gameRest = filteredRest(addLog({value}), /player/);
+            const playerRest = filteredRest(gameState.player, /inventory/);
+            return {
+                player: {
+                    inventory: action.itmAction.doesRemove ? gameState.player.inventory.filter(item => item.key !== action.item.key) : gameState.player.inventory,
+                    ...playerRest
+                },
+                ...gameRest
+            }
+        }
+
+        default: throw new Error(`Must include a valid action.type in action ${JSON.stringify(action)}`);
     }
 }
 

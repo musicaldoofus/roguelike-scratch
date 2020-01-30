@@ -1,14 +1,11 @@
-import samplePlayerStats from './samplePlayerStats';
+import initPlayerStats from './initPlayerStats';
 import initRoom from './initRoom';
 
 const initGameState = {
-    player: samplePlayerStats,
+    player: initPlayerStats,
     log: {
-        metadata: {
-
-        },
         messages: [{
-            type: 'general',
+            ctx: 'general',
             value: 'Started game.'
         }]
     },

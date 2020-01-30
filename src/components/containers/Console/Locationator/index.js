@@ -1,5 +1,5 @@
 import React from 'react';
-import { useGameState } from '../../../helpers/reducers/gameStateReducer';
+import { useGameState } from '../../../../helpers/reducers/gameStateReducer';
 
 const Locationator = () => {
     const [gameState, dispatchGameState] = useGameState();
@@ -11,22 +11,12 @@ const Locationator = () => {
             ctx,
             type: 'clearRoom'
         });
-        dispatchGameState({
-            ctx,
-            type: 'addLog',
-            value: 'Cleared room'
-        });
     }
 
     const handleClearBattle = () => {
         dispatchGameState({
             ctx,
             type: 'clearBattle'
-        });
-        dispatchGameState({
-            ctx,
-            type: 'addLog',
-            value: 'Cleared battle'
         });
     }
 

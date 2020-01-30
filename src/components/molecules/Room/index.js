@@ -1,16 +1,19 @@
 import React, { useEffect } from 'react';
-import './Room.css';
 import { useGameState } from '../../../helpers/reducers/gameStateReducer';
-import toCoords from '../../../helpers/toCoords';
-import { BeastHealthBar } from '../../molecules/Beast';
+import toCoords from '../../../helpers/utilityLambdas/toCoords';
+import { BeastHealthBar } from '../Beast';
+import './Room.css';
 
-const Room = ({tiles, dimensionality}) => {
+const Room = () => {
     const [gameState, dispatchGameState] = useGameState();
 
     useEffect(() => {
         window.addEventListener('keydown', (e) => {
             if (e.isComposing || e.keyCode === 229) return;
             if (arrowHandlerKeyCodes.indexOf(e.keyCode) > -1) handleArrowPress(e.keyCode);
+            if (e.keyCode === 73) handleToggleInventory();
+            if (e.keyCode === 27) handleToggleInventory(true);
+            if (e.keyCode === 67) handleToggleConsole();
         });
     }, []);
 
@@ -39,8 +42,18 @@ const Room = ({tiles, dimensionality}) => {
             ctx,
             type: 'handleMoveActor',
             dir: dirFromCode()
-        })
+        });
     }
+
+    const handleToggleConsole = () => dispatchGameState({
+        ctx,
+        type: 'toggleConsole'
+    })
+
+    const handleToggleInventory = (forceClose) => dispatchGameState({
+        ctx,
+        type: forceClose ? 'handleClosePanel' : 'handleToggleInventory'
+    });
 
     const handleClickTile = (tile, index) => dispatchGameState({
         ctx,
@@ -48,6 +61,9 @@ const Room = ({tiles, dimensionality}) => {
         tile,
         index
     });
+
+    const tiles = gameState.location.rooms[0].tiles;
+    const dimensionality = gameState.location.rooms[0].dimensionality;
 
     const roomCoords = tiles.map((tile, i) => {
         const tileCoords = toCoords(i, dimensionality); //improve - need to access roomIndex
@@ -72,7 +88,7 @@ const Room = ({tiles, dimensionality}) => {
         );
     });
 
-    const gridUnit = '2em'; //update - calculate: (get container width) => set font-size on container and use em to size gridUnit
+    const gridUnit = '1.5em'; //update - calculate: (get container width) => set font-size on container and use em to size gridUnit
 
     const gridStyle = {
         gridTemplateColumns: `repeat(${dimensionality}, ${gridUnit})`,

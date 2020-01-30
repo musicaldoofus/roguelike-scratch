@@ -29,6 +29,7 @@
   --red-lt-two: #EEA08C;
   --red-lt-gray: #BB9A8B;
   --box-shadow-right: -0.5em 0 2em 0.5em var(--gray);
+  --box-shadow-down: -0.5em 0 2em 0.5em var(--gray);
 }
 
 html, body {

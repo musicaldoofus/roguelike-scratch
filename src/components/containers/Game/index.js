@@ -1,8 +1,9 @@
 import React from 'react';
-import GameDisplay from '../containers/GameDisplay';
-import Console from '../molecules/Console';
-import GameStateProvider from '../../helpers/reducers/gameStateReducer';
-import HUD from '../containers/HUD';
+import GameStateProvider from '../../../helpers/reducers/gameStateReducer';
+import Console from '../Console';
+import HUD from '../HUD';
+import ControlsPanel from '../ControlsPanel';
+import GameDisplay from '../GameDisplay';
 import './Game.css';
 
 const Game = () => {
@@ -11,6 +12,7 @@ const Game = () => {
             <Console/>
             <div className="game">
                 <HUD/>
+                <ControlsPanel/>
                 <GameDisplay/>
             </div>
         </GameStateProvider>

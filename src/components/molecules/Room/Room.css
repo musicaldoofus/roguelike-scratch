@@ -22,7 +22,6 @@
 }
 
 .map-tile.none {
-    background-color: var(--smoke);
     display: flex;
     position: relative;
 }

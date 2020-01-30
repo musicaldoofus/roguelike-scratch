@@ -1,13 +1,4 @@
 /*PlayerBattleControls.css*/
 
 .player-controls {
-    position: absolute;
-    right: -5em;
-    top: 0;
-    z-index: 1;
-    background-color: var(--red-lt-gray);
-    border: 2px solid var(--red-dk-three);
-    display: block;
-    width: 4em;
-    height: 100%;
 }

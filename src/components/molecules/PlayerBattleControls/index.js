@@ -6,18 +6,18 @@ const PlayerBattleControls = () => {
     const [gameState, dispatchGameState] = useGameState();
 
     const targetedBeast = gameState.location.nearbyBeasts.filter(b => b.isTargeted);
-    console.log('t', targetedBeast);
 
-    const handleTarget = () => dispatchGameState({
-            type: 'openTargetBeast',
-            ctx: 'battlepod'
-        })
-    const handleAttack = () => dispatchGameState({
-            type: 'adjustHP',
-            ctx: 'battlepod',
-            targetActor: 'npc',
-            amt: -1
-        });
+    const handleTarget = () => dispatchGameState({ //confirm if this is still necessary
+        type: 'openTargetBeast',
+        ctx: 'playerControls'
+    });
+
+    const handleAttack = (attack) => dispatchGameState({
+        type: 'adjustHP',
+        ctx: 'playerControls',
+        targetActor: 'npc',
+        attack
+    });
 
     return (
         <div className="player-controls">

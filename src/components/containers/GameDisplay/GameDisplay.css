@@ -8,4 +8,9 @@
     grid-template-rows: 1fr auto;
     grid-gap: 1em;
     padding: 2em;
+    transition: margin-left ease 0.2s;
+}
+
+.game-display.with-control-panel {
+    margin-left: 10em;
 }

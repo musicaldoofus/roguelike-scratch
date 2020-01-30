@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useGameState } from '../../../helpers/reducers/gameStateReducer';
+import Loading from '../../atoms/Loading';
 import './Log.css';
 
 const Log = () => {
@@ -7,15 +8,15 @@ const Log = () => {
     const [ctxFocus, setCtxFocus] = useState('general');
     const [activeViewIndex, setActiveViewIndex] = useState(0);
     
-    const displayTypes = [
-        'general',
-        'inventory',
-        'battle',
-        'roller',
-        'beasterator',
-        'battlepod',
-        'console'
-    ];
+    const displayTypes = useMemo(() => {
+        return gameState.log.messages
+            .map(({ctx}) => ctx)
+            .reduce((acc, curr) => {
+                if (acc.indexOf(curr) > -1) return acc;
+                else return acc.concat(',').concat(curr);
+            })
+            .split(',');
+        }, [gameState.log.messages]);
 
     const handleFilterClick = (t) => {
         setActiveViewIndex(0);
@@ -24,7 +25,7 @@ const Log = () => {
 
     const messages = gameState.log.messages;
     const filteredMessages = ctxFocus === 'general' ? messages : messages.filter(({ctx}) => ctx === ctxFocus);
-    const VIEW_LIMIT = 11;
+    const VIEW_LIMIT = 11; //arbitrary - draw by element.getClientBoundingRect()
 
     const adjustViewIndex = (amt) => {
         if (activeViewIndex + amt < 0 || activeViewIndex + amt > filteredMessages.length - 1) return;
@@ -42,11 +43,13 @@ const Log = () => {
                 <span>{m.value}</span>
             </div>
         ));
-    const filterButtons = displayTypes.map(t => (
+    const filterButtons = displayTypes ? displayTypes.map(t => (
         <button className={`filter-btn${ctxFocus === t ? ' active' : ''}`} key={t} onClick={() => handleFilterClick(t)}>
             <span>{t}</span>
         </button>
-    ));
+    )) : (
+        <Loading/>
+    );
 
     return (
         <div className="log">

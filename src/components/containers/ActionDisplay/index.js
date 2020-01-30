@@ -1,6 +1,6 @@
 import React from 'react';
 import { useGameState } from '../../../helpers/reducers/gameStateReducer';
-import Room from '../../Game/Room';
+import Room from '../../molecules/Room';
 import './ActionDisplay.css';
 
 const ActionDisplay = () => {

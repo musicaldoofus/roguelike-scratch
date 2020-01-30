@@ -1,6 +1,6 @@
 import rollDie from './rollDie';
-import beastDictionary from './beastDictionary';
-import elements from './elements';
+import beastDictionary from '../dictionaries/beastDictionary';
+import elements from '../initModels/elements';
 
 const generateNewBeast = (allowedBeasts = ['spider']) => {
   const lvl = 1; //depend on levels allowed for beast (abstract to a function or die roll)

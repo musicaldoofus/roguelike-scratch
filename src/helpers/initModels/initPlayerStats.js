@@ -8,26 +8,30 @@ const samplePlayerStats = {
     },
     inventory: [{
         type: 'weapon',
-        label: 'Spear',
+        baseTitle: 'Spear',
+        isEquipped: true,
         damage: '1d4',
+        key: 1001, //arbitrary - improve
         proximity: [
             'melee',
             'ranged'
         ],
         equippedBy: 'hand',
-        range: '30ft',
+        range: '20ft',
         rangeMod: '1d4',
         description: 'Old and scraggly, you picked this up from your dead father\'s corpse. He didn\'t seem to mind.'
     },
     {
         type: 'potion',
-        label: 'Absolve Corruption I',
+        key: 1002, //arbitrary - improve
+        baseTitle: 'Absolve Corruption I',
         proximity: 'ranged',
         rangeMod: '1d4',
         equippedBy: 'hand',
         description: 'Smells a bit like old cheese mixed with your gym socks.'
     }],
     baseStats: {
+        //modify only with atypical events
         strength: 1,
         agility: 1,
         constitution: 1,
@@ -37,7 +41,10 @@ const samplePlayerStats = {
         savingThrow: '1d8'
     },
     vitalStats: {
+        //modify with typical events
         hp: 10,
+        sp: 0,
+        xp: 0
     },
     corruption: [
         {

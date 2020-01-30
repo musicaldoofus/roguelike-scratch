@@ -27,18 +27,21 @@
     height: 100%;
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: flex-start;
 }
 
 .log-filter-btns > button {
     cursor: pointer;
     border: none;
     transition: all ease 0.2s;
-    height: 1.5em;
+    max-height: 2em;
+    display: flex;
 }
 
 .log-filter-btns > button > span {
     font-size: 0.8em;
+    margin: auto;
+    padding: 0.5em 0.75em;
 }
 
 .log-filter-btns > button.active {

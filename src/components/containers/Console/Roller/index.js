@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
-import rollDie from '../../../helpers/rollDie';
-import standardDice from '../../../helpers/standardDice';
-import { useGameState } from '../../../helpers/reducers/gameStateReducer';
+import rollDie from '../../../../helpers/utilityLambdas/rollDie';
+import { useGameState } from '../../../../helpers/reducers/gameStateReducer';
+
+const standardDice = [
+  4,
+  6,
+  8,
+  10,
+  12,
+  16,
+  20
+];
 
 const Roller = () => {
   const [, dispatchGameState] = useGameState();
@@ -19,7 +28,7 @@ const Roller = () => {
   const handleRoll = () => {
     const rollResult = rollDie(rollString);
     dispatchGameState({
-      ctx: 'roller',
+      ctx: 'console',
       type: 'addLog',
       value: `Rolling ${rollString}... Result: ${rollResult}`
     });

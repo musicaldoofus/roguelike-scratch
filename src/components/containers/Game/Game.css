@@ -7,4 +7,10 @@
     grid-gap: 2em;
     overflow: hidden;
     font-family: 'Arvin', sans-serif;
+    position: relative;
+    transition: margin-left ease 0.2s;
+}
+
+.game.with-control-panel {
+    margin-left: 10em;
 }

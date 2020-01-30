@@ -9,5 +9,5 @@
     width: 20em;
     background-color: var(--red-dk-bg);
     box-shadow: var(--box-shadow-right);
-    z-index: 1;
+    z-index: 11;
 }

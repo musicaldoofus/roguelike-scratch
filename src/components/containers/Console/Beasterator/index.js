@@ -1,22 +1,21 @@
 import React, { Fragment, useState } from 'react';
-import { DisplayBeast } from '../../molecules/Beast';
-import generateNewBeast from '../../../helpers/generateNewBeast';
+import generateNewBeast from '../../../../helpers/utilityLambdas/generateNewBeast';
+import beastDictionary from '../../../../helpers/dictionaries/beastDictionary';
+import { useGameState } from '../../../../helpers/reducers/gameStateReducer';
 import './Beasterator.css';
-import beastDictionary from '../../../helpers/beastDictionary';
-import { useGameState } from '../../../helpers/reducers/gameStateReducer';
 
 const Beasterator = () => {
   const [, dispatchGameState] = useGameState();
   const [beast, setBeast] = useState(null);
   const [selectedBeastList, setBeastList] = useState([]);
-  const ctx = 'beasterator';
+  const ctx = 'console';
 
   const getNewBeast = () => generateNewBeast(selectedBeastList.length > 0 ? selectedBeastList : Object.keys(beastDictionary))
 
   const handleClickNewBeast = () => {
     const newBeast = getNewBeast();
     dispatchGameState({
-      ctx: 'beasterator',
+      ctx,
       type: 'addLog',
       value: `Generated a new ${newBeast.baseTitle}`
     });
@@ -31,11 +30,6 @@ const Beasterator = () => {
 
   const handlePushBeast = () => {
     const newBeast = beast ? beast : getNewBeast();
-    dispatchGameState({
-      ctx: 'beasterator',
-      type: 'addLog',
-      value: `Pushing ${newBeast.baseTitle} to Room`
-    });
     dispatchGameState({
       ctx,
       type: 'pushBeastToRoom',
@@ -71,7 +65,6 @@ const Beasterator = () => {
       <div className="beast-container">
         {beast &&
           <>
-            <DisplayBeast beast={beast}/>
             <button onClick={() => handlePushBeast(beast)}>Push to Room</button>
           </>
         }
