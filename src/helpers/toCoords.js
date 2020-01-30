@@ -7,4 +7,7 @@ const toCoords = (i, dimensionality) => {
     };
 };
 
+const toIndex = (coords, dimensionality) => coords.y * dimensionality + coords.x;
+
 export default toCoords;
+export { toIndex };

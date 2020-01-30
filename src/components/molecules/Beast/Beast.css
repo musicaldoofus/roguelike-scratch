@@ -1,14 +1,17 @@
 /*Beast.css*/
 
-.beast {
+.beast, .player {
     display: flex;
-    font-family: 'Arvin';
     width: 100%;
     height: 100%;
     z-index: 2;
 }
 
-.beast::after {
+.player::after {
+    content: '@';
+}
+
+.beast::after, .player::after {
     margin: auto;
     font-size: 1.5em;
 }

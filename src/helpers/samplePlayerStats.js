@@ -3,8 +3,8 @@ const samplePlayerStats = {
         roomId: 0 //
     },
     roomCoords: {
-        x: 0,
-        y: 0
+        x: 1,
+        y: 2
     },
     inventory: [{
         type: 'weapon',

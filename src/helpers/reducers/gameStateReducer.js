@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useMemo } from 'react';
 import initGameState from '../initGameState';
-import toCoords from '../toCoords';
+import toCoords, { toIndex } from '../toCoords';
 
 const GameStateContext = createContext();
 
@@ -61,12 +61,11 @@ const gameStateReducer = (gameState, action) => {
         case 'clearRoom': {
             const gameRest = filteredRest(gameState, /location/);
             const locationRest = filteredRest(gameState.location, /nearbyBeasts/);
-            const location = {
-                nearbyBeasts: [],
-                ...locationRest
-            };
             return {
-                location,
+                location: {
+                    nearbyBeasts: [],
+                    ...locationRest
+                },
                 ...gameRest
             };
         }
@@ -75,42 +74,69 @@ const gameStateReducer = (gameState, action) => {
             const dimensionality = gameState.location.rooms[action.roomIndex].dimensionality;
             const locationRest = filteredRest(gameState.location, /(nearbyBeasts)/);
             const openTiles = gameState.location.rooms[action.roomIndex].tiles
-                .map((tile, i) => tile.type === 'none' ? toCoords(i, dimensionality) : null) //improve - need to check if beast is on tile as well
+                .map((tile, i) => tile.type === 'none' ? toCoords(i, dimensionality) : null) //improve - need to check if beast or player is on tile as well
                 .filter(t => typeof t === 'object' ? t : false);
-            const randomTileIndex = Math.floor(Math.random() * openTiles.length);
+            const randomTileIndex = Math.floor(Math.random() * openTiles.length); //extend - allow to check loc.rooms[loc.level - 1].beastGenerationRules
             const updatedBeast = Object.assign({}, action.beast, {coords: openTiles[randomTileIndex]});
             const nearbyBeasts = gameState.location.nearbyBeasts.filter(b => b.key !== action.beast.key).concat(updatedBeast);
-            const location = {
-                nearbyBeasts,
-                ...locationRest
-            };
             return {
-                location,
+                location: {
+                    nearbyBeasts,
+                    ...locationRest
+                },
                 ...gameRestFromLocation
             };
         }
 
         case 'handleClickTile': {
-            const dimensionality = gameState.location.rooms[0].dimensionality;
-            const beastOnTile = gameState.location.nearbyBeasts.filter(({coords}) => {
-                const check = toCoords(action.index, dimensionality)
-                console.log('check coords', coords, check);
+            const loc = gameState.location;
+            const dimensionality = loc.rooms[loc.level - 1].dimensionality;
+            const beastOnTile = loc.nearbyBeasts.filter(({coords}) => {
+                const check = toCoords(action.index, dimensionality);
                 return coords.x === check.x && coords.y === check.y;
             });
-            console.log('clicked tile, found beast ?', beastOnTile);
             if (beastOnTile.length > 0) return handleTargetBeast(beastOnTile[0]);
             else return addLog(action.tile);
+        }
+
+        case 'handleMoveActor': {
+            //assume player for first iteration to test handlers
+            //const actor = 'player';
+            const dir = action.dir;
+            const room = gameState.location.rooms[gameState.location.level - 1];
+            const dimensionality = room.dimensionality;
+            const { x, y } = gameState.player.roomCoords;
+            if ((dir === 'up' && y === 1)
+                || (dir === 'right' && x === dimensionality - 2) //confirm
+                || (dir === 'left' && x === 1)
+                || (dir === 'down' && y === dimensionality - 2)
+                ) return addLog('You bump into a wall.');
+            const dX = dir === 'left' ? -1 : dir === 'right' ? 1 : 0;
+            const dY = dir === 'up' ? -1 : dir === 'down' ? 1 : 0;
+            const targetTile = room.tiles[toIndex({x: x + dX, y: y + dY}, dimensionality)];
+            if (targetTile.type !== 'none') return addLog('Whups!');
+            const gameRest = filteredRest(gameState, /player/);
+            const playerRest = filteredRest(gameState.player, /roomCoords/);
+            return {
+                player: {
+                    roomCoords: {
+                        x: x + dX,
+                        y: y + dY
+                    },
+                    ...playerRest
+                },
+                ...gameRest
+            };
         }
 
         case 'openTargetBeast': {
             const locationRest = filteredRest(gameState.location, /targetState/);
             const targetState = true;
-            const location = {
-                targetState,
-                ...locationRest
-            };
             return {
-                location,
+                location: {
+                    targetState,
+                    ...locationRest
+                },
                 ...gameRestFromLocation
             };
         }
@@ -123,18 +149,16 @@ const gameStateReducer = (gameState, action) => {
             if (action.targetActor === 'npc') {
                 const locationRest = filteredRest(gameState.location, /nearbyBeasts/);
                 const beastTarget = gameState.location.nearbyBeasts.filter(b => b.isTargeted)[0]; //extend to allow looping to damage/apply damage to other creatures (or consider one attack per beast in single dispatch call)
-                beastTarget.hp += action.amt;
                 const restBeasts = gameState.location.nearbyBeasts.filter(b => !b.isTargeted);
-                const nearbyBeasts = [
-                    beastTarget,
-                    ...restBeasts
-                ];
-                const location = {
-                    nearbyBeasts,
-                    ...locationRest
-                };
+                beastTarget.hp += action.amt;
                 return {
-                    location,
+                    location: {
+                        nearbyBeasts: [
+                            beastTarget,
+                            ...restBeasts
+                        ],
+                        ...locationRest
+                    },
                     ...gameRestFromLocation
                 }
             }
@@ -142,16 +166,14 @@ const gameStateReducer = (gameState, action) => {
                 const gameRest = filteredRest(gameState, /player/);
                 const playerRest = filteredRest(gameState.player, /vitalStats/);
                 const vitalStatsRest = filteredRest(gameState.player.vitalStats, /hp/);
-                const vitalStats = {
-                    hp: gameState.player.vitalStats.hp + action.amt,
-                    ...vitalStatsRest
-                };
-                const player = {
-                    vitalStats,
-                    ...playerRest
-                };
                 return {
-                    player,
+                    player: {
+                        vitalStats: {
+                            hp: gameState.player.vitalStats.hp + action.amt,
+                            ...vitalStatsRest
+                        },
+                        ...playerRest
+                    },
                     ...gameRest
                 }
             }
