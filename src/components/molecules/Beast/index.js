@@ -2,6 +2,18 @@ import React from 'react';
 import { useGameState } from '../../../helpers/reducers/gameStateReducer';
 import './Beast.css';
 
+const BeastHealthBar = ({currHealth, maxHealth}) => {
+  const width = `${currHealth / maxHealth * 100}%`;
+  const barStyle = {
+    width
+  };
+  return (
+    <div className="health-bar">
+      <span style={barStyle}></span>
+    </div>
+  )
+}
+
 const BeastAvatar = ({imgSrc, baseTitle}) => {
   return (
     <div className="beast-display-avatar display-img">
@@ -76,4 +88,4 @@ const Beast = (beast) => {
 }
 
 export default Beast;
-export { DisplayBeast };
+export { DisplayBeast, BeastHealthBar };

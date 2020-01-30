@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import './Room.css';
 import { useGameState } from '../../../helpers/reducers/gameStateReducer';
 import toCoords from '../../../helpers/toCoords';
+import { BeastHealthBar } from '../../molecules/Beast';
 
 const Room = ({tiles, dimensionality}) => {
     const [gameState, dispatchGameState] = useGameState();
@@ -60,7 +61,9 @@ const Room = ({tiles, dimensionality}) => {
         return (
             <div key={`${x}_${y}`} className={`map-tile ${tile.type}`} onClick={() => handleClickTile(tile, i)}>
                 {beast && (
-                    <div className={`beast ${beast.baseTitle.replace(/\s/g, '-').toLowerCase()}${beast.isTargeted ? ' is-targeted' : ''}`} style={gridAreaStyle}></div>
+                    <div className={`beast ${beast.baseTitle.replace(/\s/g, '-').toLowerCase()}${beast.isTargeted ? ' is-targeted' : ''}`} style={gridAreaStyle}>
+                        <BeastHealthBar currHealth={beast.hp} maxHealth={4}/>
+                    </div>
                 )}
                 {player && (
                     <div className={`player`} style={gridAreaStyle}></div>
