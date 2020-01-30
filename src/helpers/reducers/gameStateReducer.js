@@ -37,16 +37,16 @@ const gameStateReducer = (gameState, action) => {
         }
     }
     const addLog = (msg) => {
-        if (action.value === '') {
+        const gameRest = filteredRest(gameState, /log/);
+        const {ctx, value} = msg ? msg : action;
+        if (value === '') {
             console.warn(`Log ignored. Must supply a valid String for ${JSON.stringify(action)}`);
             return gameState;
         }
-        const gameRest = filteredRest(gameState, /log/);
-        const {ctx, value} = action;
         const log = {
             messages: gameState.log.messages.concat({
-                ctx,
-                value: msg ? JSON.stringify(msg) : `[${ctx}] ${value}`
+                ctx: ctx ? ctx : 'gameStateReducer',
+                value
             })
         };
         return {
@@ -96,7 +96,7 @@ const gameStateReducer = (gameState, action) => {
                 return coords.x === check.x && coords.y === check.y;
             });
             if (beastOnTile.length > 0) return handleTargetBeast(beastOnTile[0]);
-            else return addLog(action.tile);
+            else return addLog({value: JSON.stringify(action.tile)});
         }
 
         case 'handleMoveActor': {
@@ -110,11 +110,11 @@ const gameStateReducer = (gameState, action) => {
                 || (dir === 'right' && x === dimensionality - 2) //confirm
                 || (dir === 'left' && x === 1)
                 || (dir === 'down' && y === dimensionality - 2)
-                ) return addLog('You bump into a wall.');
+                ) return addLog({value: 'You bump into a wall.'});
             const dX = dir === 'left' ? -1 : dir === 'right' ? 1 : 0;
             const dY = dir === 'up' ? -1 : dir === 'down' ? 1 : 0;
             const targetTile = room.tiles[toIndex({x: x + dX, y: y + dY}, dimensionality)];
-            if (targetTile.type !== 'none') return addLog('Whups!');
+            if (targetTile.type !== 'none') return addLog({value: 'Whups!'});
             const gameRest = filteredRest(gameState, /player/);
             const playerRest = filteredRest(gameState.player, /roomCoords/);
             return {

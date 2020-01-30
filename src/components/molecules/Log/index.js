@@ -18,24 +18,24 @@ const Log = () => {
     ];
 
     const handleFilterClick = (t) => {
-        adjustViewIndex();
+        setActiveViewIndex(0);
         setCtxFocus(t);
     }
 
     const messages = gameState.log.messages;
+    const filteredMessages = ctxFocus === 'general' ? messages : messages.filter(({ctx}) => ctx === ctxFocus);
     const VIEW_LIMIT = 11;
 
     const adjustViewIndex = (amt) => {
-        if (activeViewIndex + amt < 0 || activeViewIndex + amt > messages.length - 1) return;
+        if (activeViewIndex + amt < 0 || activeViewIndex + amt > filteredMessages.length - 1) return;
         setActiveViewIndex(amt ? activeViewIndex + amt : 0);
     }
     
-    const endIndex = messages.length - activeViewIndex;
+    const endIndex = filteredMessages.length - activeViewIndex;
     const begIndex = endIndex >= VIEW_LIMIT ?
         endIndex - VIEW_LIMIT
         : 0;
-    const logMessages = messages
-        .filter(({ctx}) => ctxFocus === 'general' ? true : ctx === ctxFocus)
+    const logMessages = filteredMessages
         .slice(begIndex, endIndex)
         .map((m, i) => (
             <div key={m.value.concat(i)}>
@@ -56,7 +56,7 @@ const Log = () => {
                 </div>
                 <div className="log-body-view-index-btns">
                     <div className="view-index-btns-container">
-                        <button className={`view-index-btn${activeViewIndex === messages.length - 1 ? ' disabled' : ''}`} onClick={() => adjustViewIndex(1)}>↑</button>
+                        <button className={`view-index-btn${(filteredMessages.length === 0 || activeViewIndex === filteredMessages.length - 1) ? ' disabled' : ''}`} onClick={() => adjustViewIndex(1)}>↑</button>
                         <button className={`view-index-btn${activeViewIndex === 0 ? ' disabled' : ''}`} onClick={() => adjustViewIndex(-1)}>↓</button>
                     </div>
                 </div>
