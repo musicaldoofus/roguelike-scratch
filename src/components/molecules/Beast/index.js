@@ -10,21 +10,17 @@ const BeastAvatar = ({imgSrc, baseTitle}) => {
   );
 }
 
-const BeastBattleStats = () => {
-  const [gameState] = useGameState();
-
+const BeastBattleStats = (beast) => {
   const keysToInclude = /(strength|hp)/gi;
-  const stats = gameState.location.nearbyBeasts.filter(b => b.isInBattle)[0];
-  if (!stats) throw new Error(`Must include a valid beast reference in gameState.location for beasts ${JSON.stringify(gameState.location.nearbyBeasts)}`)
   return (
     <div className="beast-display-stats">
       <div>
-        stats.isInBattle: {''.concat(stats.isInBattle)}
+        isInBattle: {''.concat(beast.isInBattle)}
       </div>
-      {Object.keys(stats).filter(k => keysToInclude.test(k)).map(k => (
+      {Object.keys(beast).filter(k => keysToInclude.test(k)).map(k => (
         <div key={k}>
           <span>
-            {k}: {stats[k]}
+            {k}: {beast[k]}
           </span>
         </div>)
       )}
@@ -49,23 +45,35 @@ const BeastBattleControls = () => {
 }
 
 const DisplayBeast = ({beast}) => {
+  const [, dispatchGameState] = useGameState();
+
   const {imgSrc, baseTitle} = beast;
+
+  const handleTargetBeast = () => dispatchGameState({
+    ctx: 'room',
+    type: 'handleTargetBeast',
+    beast
+  });
+
   return (
     <div className="display-beast">
       <BeastAvatar imgSrc={imgSrc} baseTitle={baseTitle}/>
+      <div>
+        <button onClick={handleTargetBeast}>Select</button>
+      </div>
     </div>
   );
 }
 
-const BattleBeast = () => {
+const Beast = (beast) => {
   return (
-    <div className="beast-display">
-      <BeastAvatar/>
-      <BeastBattleStats/>
+    <div className="battle-beast">
+      <BeastAvatar {...beast}/>
+      <BeastBattleStats {...beast}/>
       <BeastBattleControls/>
     </div>
   );
 }
 
-export default BattleBeast;
+export default Beast;
 export { DisplayBeast };

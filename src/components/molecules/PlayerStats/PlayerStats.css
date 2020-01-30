@@ -1,0 +1,10 @@
+/*PlayerStats.css*/
+
+.player-display-stats {
+    background-color: var(--smoke);
+    border: 2px solid var(--gray);
+}
+
+.player-display-inner {
+    padding: 0.25em 0.5em;
+}

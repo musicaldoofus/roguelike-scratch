@@ -1,0 +1,11 @@
+/*MainDisplay.css*/
+
+.game-display {
+    background-color: var(--smoke);
+    grid-column: 2 / 3;
+    grid-row: 1 / 3; /*this doesn't make sense (parent grid doesn't use grid-template-rows) but is needed to render correctly in grid*/
+    display: grid;
+    grid-template-rows: 1fr auto;
+    grid-gap: 1em;
+    padding: 2em;
+}

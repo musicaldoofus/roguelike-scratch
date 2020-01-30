@@ -21,7 +21,7 @@ const Roller = () => {
     dispatchGameState({
       ctx: 'roller',
       type: 'addLog',
-      value: `[Roller]: Rolling ${rollString}... Result: ${rollResult}`
+      value: `Rolling ${rollString}... Result: ${rollResult}`
     });
     setRollVal(rollResult);
   }

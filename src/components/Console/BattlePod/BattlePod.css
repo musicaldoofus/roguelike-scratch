@@ -1,7 +1,0 @@
-/*BattlePod.css*/
-
-.battle-pod {
-    display: grid;
-    grid-template-columns: auto auto;
-    grid-column-gap: 2em;
-}

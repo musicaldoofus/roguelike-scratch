@@ -1,4 +1,5 @@
 import samplePlayerStats from './samplePlayerStats';
+import initRoom from './initRoom';
 
 const initGameState = {
     player: samplePlayerStats,
@@ -12,7 +13,9 @@ const initGameState = {
         }]
     },
     location: {
-        nearbyBeasts: []
+        level: 1,
+        rooms: initRoom,
+        nearbyBeasts: [] //beasts placed within available space in room on generation, or on add to nearbyBeasts (AKA beast entering the room)
     }
 };
 

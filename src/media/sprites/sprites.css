@@ -1,0 +1,27 @@
+/*sprites.css*/
+
+.sprite {
+    display: block;
+    height: 8px;
+    width: 8px;
+}
+
+.sprite.a {
+    background: url('./sheet_1.png') 0 0;
+}
+
+.sprite.b {
+    background: url('./sheet_1.png') -8px 0;
+}
+
+.sprite.wall-vertical-connector {
+    height: 12px;
+    width: 12px;
+    background: url('./sheet_1.png') -18px -148px;
+}
+
+.sprite.wall-vertical-terminator {
+    height: 12px;
+    width: 12px;
+    background: url(/static/media/sheet_1.613de768.png) -18px -162px;
+}

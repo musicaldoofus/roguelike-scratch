@@ -13,11 +13,6 @@ const Beasterator = () => {
 
   const getNewBeast = () => generateNewBeast(selectedBeastList.length > 0 ? selectedBeastList : Object.keys(beastDictionary))
 
-  const quickPushBeast = () => {
-    handlePushBeast();
-    setBeast(null);
-  }
-
   const handleClickNewBeast = () => {
     const newBeast = getNewBeast();
     dispatchGameState({
@@ -38,17 +33,14 @@ const Beasterator = () => {
     const newBeast = beast ? beast : getNewBeast();
     dispatchGameState({
       ctx: 'beasterator',
-      type: 'clearBattlePod'
-    });
-    dispatchGameState({
-      ctx: 'beasterator',
       type: 'addLog',
-      value: `Pushing ${newBeast.baseTitle} to BattlePod`
+      value: `Pushing ${newBeast.baseTitle} to Room`
     });
     dispatchGameState({
       ctx,
-      type: 'pushBeastToBattle',
-      beast: newBeast
+      type: 'pushBeastToRoom',
+      beast: newBeast,
+      roomIndex: 0
     });
     setBeast(null);
   }
@@ -74,13 +66,13 @@ const Beasterator = () => {
       </div>
       <div className="btn">
         <button onClick={handleClickNewBeast}>Generate new beast</button>
-        <button onClick={quickPushBeast}>Generate + Push to BattlePod</button>
+        <button onClick={handlePushBeast}>Generate + push to Room</button>
       </div>
       <div className="beast-container">
         {beast &&
           <>
             <DisplayBeast beast={beast}/>
-            <button onClick={() => handlePushBeast(beast)}>Push to Battle</button>
+            <button onClick={() => handlePushBeast(beast)}>Push to Room</button>
           </>
         }
       </div>

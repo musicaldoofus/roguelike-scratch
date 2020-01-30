@@ -1,25 +1,51 @@
+@font-face {
+  font-family: 'Arvin';
+  src: url('./media/fonts/Arvin.ttf') format('truetype');
+}
+
+* {
+  font-size: inherit;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 :root {
   --gray: #575757;
   --smoke: #ECECEC;
   --red-one: #c94b50;
   --slate-one: #132438;
   --slate-two: #375752;
+  --slate-dk: #081421;
   --seafoam: #3da3a2;
   --tomato: #fc5956;
   --gray-dim: #515a5c;
+  --gray-two: #89989C;
+  --red-dk-one: #912819;
+  --red-dk-two: #49140D;
+  --red-dk-three: #330A04;
+  --red-dk-bg: #220A07;
+  --red-lt-one: #FACDB9;
+  --red-lt-two: #EEA08C;
+  --red-lt-gray: #BB9A8B;
+  --box-shadow-right: -0.5em 0 2em 0.5em var(--gray);
 }
 
-html, body, div#root {
+html, body {
   height: 100vh;
 }
 
 body {
-  margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+div#root {
+  height: 100%;
+}
+
 div.app {
   height: 100%;
-  background-color: var(--slate-one);
+  background-color: var(--smoke);
+  color: var(--red-dk-three);
 }

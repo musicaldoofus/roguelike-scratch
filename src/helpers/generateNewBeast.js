@@ -12,6 +12,7 @@ const generateNewBeast = (allowedBeasts = ['spider']) => {
     elements: rollDie('2d4+4')
   };
   beastRef.hp = rollDie(beastRef.healthDie);
+  beastRef.key = Math.random() * 100;
   if (elementalScarcity > floorDCChecks.elements) beastRef.elem = 'fire';
   beastRef.hp +=  lvlMod + elements.hasOwnProperty(beastRef.elem) ? elements[beastRef.elem].healthMod : 0;
   return beastRef;

@@ -1,2 +1,26 @@
 /*Beast.css*/
 
+.beast {
+    display: flex;
+    font-family: 'Arvin';
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+
+.beast::after {
+    margin: auto;
+    font-size: 1.5em;
+}
+
+.beast.cave-spider::after {
+    content: 'S';
+}
+
+.beast.cave-rat::after {
+    content: 'R';
+}
+
+.beast.is-targeted {
+    outline: 1px solid var(--red-dk-one);
+}

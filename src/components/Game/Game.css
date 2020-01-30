@@ -1,0 +1,10 @@
+/*Game.css*/
+
+.game {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 18em auto; /*set min-width on .game-display*/
+    grid-gap: 2em;
+    overflow: hidden;
+    font-family: 'Arvin', sans-serif;
+}
