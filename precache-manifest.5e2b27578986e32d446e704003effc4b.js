@@ -1,11 +1,11 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "9d9aac35703992735e507e3239739a92",
+    "revision": "d1380faf00f5d16048d0303b94a6d19c",
     "url": "/roguelike-scratch/index.html"
   },
   {
-    "revision": "52b1af7d7d5b7b4c6321",
-    "url": "/roguelike-scratch/static/css/main.03f36bc2.chunk.css"
+    "revision": "79af55acb2ec017e93a0",
+    "url": "/roguelike-scratch/static/css/main.44849ba2.chunk.css"
   },
   {
     "revision": "de803d153e26d5358a97",
@@ -16,8 +16,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/roguelike-scratch/static/js/2.8b60723f.chunk.js.LICENSE"
   },
   {
-    "revision": "52b1af7d7d5b7b4c6321",
-    "url": "/roguelike-scratch/static/js/main.5bc41d11.chunk.js"
+    "revision": "79af55acb2ec017e93a0",
+    "url": "/roguelike-scratch/static/js/main.54c1bdac.chunk.js"
   },
   {
     "revision": "b3a03fe44e1161df474d",
