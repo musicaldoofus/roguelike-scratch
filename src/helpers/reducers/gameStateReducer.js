@@ -120,38 +120,17 @@ const gameStateReducer = (gameState, action) => {
             });
 
             if (beastOnTile.length > 0) return handleTargetBeast(beastOnTile[0]);
-            else return addLog({ctx: 'roomHUD', value: JSON.stringify(action.tile)});
-        }
-
-        case 'handleMoveActor': {
-            //assume player for first iteration to test handlers
-            //const actor = 'player';
-            const dir = action.dir;
-            const room = gameState.location.rooms[gameState.location.level - 1];
-            const dimensionality = room.dimensionality;
-            const { x, y } = gameState.player.roomCoords;
-            if ((dir === 'up' && y === 1)
-                || (dir === 'right' && x === dimensionality - 2) //confirm
-                || (dir === 'left' && x === 1)
-                || (dir === 'down' && y === dimensionality - 2)
-                ) return addLog({ctx: 'room', value: 'You bump into a wall.'});
-            const dX = dir === 'left' ? -1 : dir === 'right' ? 1 : 0;
-            const dY = dir === 'up' ? -1 : dir === 'down' ? 1 : 0;
-            const targetTile = room.tiles[toIndex({x: x + dX, y: y + dY}, dimensionality)];
-            if (targetTile.type !== 'none') return addLog({ctx: 'room', value: 'Whups!'});
-            const gameRest = filteredRest(gameState, /player/);
-            const playerRest = filteredRest(gameState.player, /roomCoords/);
-           
-            return {
-                player: {
-                    roomCoords: {
-                        x: x + dX,
-                        y: y + dY
+            else {
+                const gameRest = filteredRest(addLog({ctx: 'roomHUD', value: JSON.stringify(action.tile)}), /location/);
+                const locationRest = filteredRest(gameState.location, /nearbyBeasts/);
+                return {
+                    location: {
+                        nearbyBeasts: gameState.location.nearbyBeasts.map(b => Object.assign({}, b, {isTargeted: false})),
+                        ...locationRest
                     },
-                    ...playerRest
-                },
-                ...gameRest
-            };
+                    ...gameRest
+                }
+            }
         }
 
         case 'openTargetBeast': {
@@ -169,6 +148,54 @@ const gameStateReducer = (gameState, action) => {
 
         case 'handleTargetBeast': return handleTargetBeast();
 
+        case 'handleMoveActor': {
+            //assume player for first iteration to test handlers
+            //const actor = 'player';
+            const dir = action.dir;
+            const room = gameState.location.rooms[gameState.location.level - 1];
+            const dimensionality = room.dimensionality;
+            const { x, y } = gameState.player.roomCoords;
+            const dX = dir === 'left' ? -1 : dir === 'right' ? 1 : 0;
+            const dY = dir === 'up' ? -1 : dir === 'down' ? 1 : 0;
+            const tileIndex = toIndex({x: x + dX, y: y + dY}, dimensionality);
+            const targetTile = room.tiles[tileIndex];
+            if (targetTile.type === 'wall') return addLog({ctx: 'room', value: 'You kick the wall out of spite. Ow.'});
+            const nearbyBeastsCoords = gameState.location.nearbyBeasts.map(({coords}) => toIndex(coords, dimensionality));
+            if (nearbyBeastsCoords.indexOf(tileIndex) > -1) {
+                const beastTarget = gameState.location.nearbyBeasts[nearbyBeastsCoords.indexOf(tileIndex)];
+                const weapon = gameState.player.inventory.filter(item => item.type === 'weapon' && item.isEquipped)[0];
+                const amtFromAttack = rollDie(weapon.damage);
+                console.log('amtFromT', amtFromAttack);
+                
+                const updatedBeast = Object.assign({}, beastTarget, {hp: beastTarget.hp - amtFromAttack >= 0 ? beastTarget.hp - amtFromAttack : 0});
+                console.log('up', updatedBeast);
+                const msg = updatedBeast.hp > 0 ? `You attack the ${beastTarget.baseTitle}` : updatedBeast.dyingMessage;
+                const gameRest = filteredRest(addLog({ctx: 'room', value: msg}), /location/);
+                const locationRest = filteredRest(gameState.location, /nearbyBeasts/);
+
+                return {
+                    location: {
+                        nearbyBeasts: gameState.location.nearbyBeasts.filter(b => b.key !== updatedBeast.key).concat(updatedBeast.hp > 0 ? updatedBeast : []),
+                        ...locationRest
+                    },
+                    ...gameRest
+                };
+            }
+            const gameRest = filteredRest(gameState, /player/);
+            const playerRest = filteredRest(gameState.player, /roomCoords/);
+           
+            return {
+                player: {
+                    roomCoords: {
+                        x: x + dX,
+                        y: y + dY
+                    },
+                    ...playerRest
+                },
+                ...gameRest
+            };
+        }
+
         case 'adjustHP': { //consider modifying to 'adjustStat'
             if (action.targetActor === 'npc') {
                 const loc = gameState.location;
@@ -179,8 +206,8 @@ const gameStateReducer = (gameState, action) => {
                 const weapon = gameState.player.inventory.filter(item => item.type === 'weapon' && item.isEquipped)[0];
                 const amtFromAttack = rollDie(weapon.damage);
                 
-                const updatedBeast = Object.assign({}, beastTarget, {hp: beastTarget.hp - amtFromAttack});
-                const msg = updatedBeast.hp > 0 ? `You attack the ${updatedBeast.baseTitle}.` : beastDictionary[updatedBeast.baseTitle].dyingMessage;
+                const updatedBeast = Object.assign({}, beastTarget, {hp: beastTarget.hp - amtFromAttack >= 0 ? beastTarget.hp - amtFromAttack : 0});
+                const msg = updatedBeast.hp > 0 ? `You attack the ${updatedBeast.baseTitle}.` : updatedBeast.dyingMessage;
                 const rollMsg = `Rolled ${weapon.damage} for ${amtFromAttack} damage.`;
                 const gameRest = filteredRest(addLog([{ctx: 'room', value: msg}, {ctx: 'roller', value: rollMsg}]), /(location)/);
                 
@@ -212,10 +239,9 @@ const gameStateReducer = (gameState, action) => {
 
         case 'handleToggleInventory': {
             const gameRest = filteredRest(gameState, /focusMode/);
-            const focusMode = gameState.focusMode === 'inventory' ? null : 'inventory';
             
             return {
-                focusMode,
+                focusMode: gameState.focusMode === 'inventory' ? null : 'inventory',
                 ...gameRest
             };
         }
@@ -241,7 +267,7 @@ const gameStateReducer = (gameState, action) => {
 
         case 'applyAction': {
             const value = `You ${action.itmAction.type} the ${action.item.baseTitle}${action.target ? ` ${action.target.verb} the ${action.target.baseTitle}` : ''}.`;
-            const gameRest = filteredRest(addLog({value}), /player/);
+            const gameRest = filteredRest(addLog({ctx: 'room', value}), /player/);
             const playerRest = filteredRest(gameState.player, /inventory/);
             return {
                 player: {
