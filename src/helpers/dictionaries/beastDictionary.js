@@ -20,6 +20,17 @@ const beastDictionary = {
     elementalScarcity: '3d6',
     imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/1/1d/Albino_Rat.jpg',
     dyingMessage: 'You squish the rat. Then wish you hadn\'t.'
+  },
+  'Un Beast': {
+    baseTitle: 'Un Beast',
+    scarcity: '1d4-2',
+    healthDie: '2d6+5',
+    armorDie: 5,
+    savingThrowDie: 0,
+    strength: 5,
+    elementalScarcity: '1d4',
+    imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/1/1d/Albino_Rat.jpg',
+    dyingMessage: 'You unmake the unbeast. Hm.'
   }
 }
 

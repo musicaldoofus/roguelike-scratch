@@ -25,6 +25,10 @@
     content: 'R';
 }
 
+.beast.un-beast::after {
+    content: 'U';
+}
+
 .beast.is-targeted {
     outline: 1px solid var(--red-dk-one);
 }

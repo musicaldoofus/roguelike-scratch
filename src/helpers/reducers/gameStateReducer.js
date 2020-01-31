@@ -97,7 +97,7 @@ const gameStateReducer = (gameState, action) => {
             const dimensionality = room.dimensionality;
             const locationRest = filteredRest(loc, /(nearbyBeasts)/);
             const openTiles = room.tiles
-                .map((tile, i) => tile.type === 'none' ? toCoords(i, dimensionality) : null) //improve - need to check if beast or player is on tile as well
+                .map((tile, i) => tile.tileType === 'none' ? toCoords(i, dimensionality) : null) //improve - need to check if beast or player is on tile as well
                 .filter(t => typeof t === 'object' ? t : false);
             const updatedBeast = Object.assign({}, action.beast, {coords: openTiles[Math.floor(Math.random() * openTiles.length)]}); //extend - allow to check loc.rooms[loc.level - 1].beastGenerationRules
             const nearbyBeasts = loc.nearbyBeasts.filter(b => b.key !== action.beast.key).concat(updatedBeast);
@@ -159,16 +159,13 @@ const gameStateReducer = (gameState, action) => {
             const dY = dir === 'up' ? -1 : dir === 'down' ? 1 : 0;
             const tileIndex = toIndex({x: x + dX, y: y + dY}, dimensionality);
             const targetTile = room.tiles[tileIndex];
-            if (targetTile.type === 'wall') return addLog({ctx: 'room', value: 'You kick the wall out of spite. Ow.'});
+            if (targetTile.tileType === 'wall') return addLog({ctx: 'room', value: 'You kick the wall out of spite. Ow.'});
             const nearbyBeastsCoords = gameState.location.nearbyBeasts.map(({coords}) => toIndex(coords, dimensionality));
             if (nearbyBeastsCoords.indexOf(tileIndex) > -1) {
                 const beastTarget = gameState.location.nearbyBeasts[nearbyBeastsCoords.indexOf(tileIndex)];
                 const weapon = gameState.player.inventory.filter(item => item.type === 'weapon' && item.isEquipped)[0];
                 const amtFromAttack = rollDie(weapon.damage);
-                console.log('amtFromT', amtFromAttack);
-                
                 const updatedBeast = Object.assign({}, beastTarget, {hp: beastTarget.hp - amtFromAttack >= 0 ? beastTarget.hp - amtFromAttack : 0});
-                console.log('up', updatedBeast);
                 const msg = updatedBeast.hp > 0 ? `You attack the ${beastTarget.baseTitle}` : updatedBeast.dyingMessage;
                 const gameRest = filteredRest(addLog({ctx: 'room', value: msg}), /location/);
                 const locationRest = filteredRest(gameState.location, /nearbyBeasts/);

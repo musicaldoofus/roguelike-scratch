@@ -75,7 +75,7 @@ const Room = () => {
         };
         const player = gameState.player.roomCoords.x === x && gameState.player.roomCoords.y === y;
         return (
-            <div key={`${x}_${y}`} className={`map-tile ${tile.type}`} onClick={() => handleClickTile(tile, i)}>
+            <div key={`${x}_${y}`} className={`map-tile ${tile.tileType}`} onClick={() => handleClickTile(tile, i)}>
                 {beast && (
                     <div className={`beast ${beast.baseTitle.replace(/\s/g, '-').toLowerCase()}${beast.isTargeted ? ' is-targeted' : ''}`} style={gridAreaStyle}>
                         <BeastHealthBar currHealth={beast.hp} maxHealth={4}/>

@@ -1,5 +1,5 @@
 import initPlayerStats from './initPlayerStats';
-import initRoom from './initRoom';
+import generateMap from '../utilityLambdas/generateMap';
 
 const initGameState = {
     player: initPlayerStats,
@@ -11,7 +11,7 @@ const initGameState = {
     },
     location: {
         level: 1,
-        rooms: initRoom,
+        rooms: generateMap(),
         nearbyBeasts: [] //beasts placed within available space in room on generation, or on add to nearbyBeasts (AKA beast entering the room)
     }
 };
