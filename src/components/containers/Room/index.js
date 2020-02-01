@@ -1,79 +1,11 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { useGameState } from '../../../helpers/reducers/gameStateReducer';
-import Cell from '../Cell';
-import { BeastHealthBar } from '../Beast';
+import PlayerGrid from '../../molecules/PlayerGrid';
+import ActorGrid from '../../molecules/ActorGrid';
+import TileGrid from '../../molecules/TileGrid';
 import './Room.css';
 
 const gridUnit = '1em';
-
-const BeastInnerCell = ({beast, gridAreaStyle}) => {
-    console.log('render <BeastInnerCell>');
-    return (
-        <div className={`beast ${beast.baseTitle.replace(/\s/g, '-').toLowerCase()}${beast.isTargeted ? ' is-targeted' : ''}`} style={gridAreaStyle}>
-            <BeastHealthBar currHealth={beast.hp} maxHealth={4}/>
-        </div>
-    );
-}
-
-const PlayerInnerCell = ({gridAreaStyle}) => <div className={`player`} style={gridAreaStyle}></div>;
-
-//<TileGrid> renders a group of tiles.
-const TileGrid = ({tiles, gridStyle, handleClickTile}) => {
-    const roomCoords = useMemo(() => {
-        const onClickTile = (index) => handleClickTile({
-            ctx: 'cell',
-            type: 'handleClickTile',
-            index
-        });
-
-        return tiles.map(({tileType}, i) => {
-            return (
-                <Cell
-                    key={i}
-                    tileType={tileType}
-                    onClick={() => onClickTile(i)}
-                />
-            );
-        });
-    }, [
-        tiles,
-        handleClickTile
-    ]);
-
-    return (
-        <div className="room-grid tile-grid" style={gridStyle}>
-            {roomCoords}
-        </div>
-    );
-}
-
-const PlayerGrid = ({gridStyle, playerCoords}) => {
-    const gridAreaStyle = {
-        gridColumn: `${playerCoords.x} / ${playerCoords.x + 1}`,
-        gridRow: `${playerCoords.y} / ${playerCoords.y + 1}`                
-    };
-    return (
-        <div className="room-grid player-grid" style={gridStyle}>
-            <PlayerInnerCell playerCoords={playerCoords} gridAreaStyle={gridAreaStyle}/>
-        </div>
-    );
-}
-
-const ActorGrid = ({gridStyle, nearbyBeasts}) => {
-    return (
-        <div className="room-grid actor-grid" style={gridStyle}>
-            {nearbyBeasts.length > 0 && (
-                nearbyBeasts.map(b => {
-                    const beastGridAreaStyle = {
-                        gridColumn: `${b.coords.x} / ${b.coords.x + 1}`,
-                        gridRow: `${b.coords.y} / ${b.coords.y + 1}`                
-                    };
-                    return <BeastInnerCell key={''.concat(b.coords.x).concat(b.coords.y)} beast={b} gridAreaStyle={beastGridAreaStyle}/>
-                })
-            )}
-        </div>
-    );
-}
 
 const Room = ({roomIndex}) => {
     const [gameState, dispatchGameState] = useGameState();
@@ -81,8 +13,6 @@ const Room = ({roomIndex}) => {
     const ctx = 'Room';
 
     useEffect(() => {
-        console.log('useEffect in <Room>');
-
         const handleToggleConsole = () => dispatchGameState({
             ctx,
             type: 'toggleConsole'
@@ -135,6 +65,7 @@ const Room = ({roomIndex}) => {
     };
     const playerCoords = gameState.player.roomCoords;
     const nearbyBeasts = gameState.location.nearbyBeasts;
+    const handleTargetBeast = dispatchGameState;
     
     return (
         <div className="room">
@@ -145,6 +76,7 @@ const Room = ({roomIndex}) => {
             <ActorGrid
                 gridStyle={gridStyle}
                 nearbyBeasts={nearbyBeasts}
+                onClick={handleTargetBeast}
             />
             <TileGrid
                 gridStyle={gridStyle}

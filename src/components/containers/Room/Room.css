@@ -1,6 +1,5 @@
 /*Room.css*/
 
-
 .room {
     position: relative;
     display: block;
@@ -40,7 +39,41 @@
 
 .map-tile.none::before {
     position: absolute;
-    top: 25%;
+    top: 50%;
     content: '.';
     left: 50%;
+    transform: translateX(-50%);
+}
+
+.beast, .player {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    position: relative;
+}
+
+.beast::after, .player::after {
+    margin: auto;
+    font-size: 1em;
+}
+
+.player::after {
+    content: '@';
+}
+
+.beast.cave-spider::after {
+    content: 'S';
+}
+
+.beast.cave-rat::after {
+    content: 'R';
+}
+
+.beast.un-beast::after {
+    content: 'U';
+}
+
+.beast.is-targeted {
+    outline: 1px solid var(--red-dk-one);
 }

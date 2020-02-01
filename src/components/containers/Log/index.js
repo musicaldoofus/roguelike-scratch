@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useGameState } from '../../../helpers/reducers/gameStateReducer';
-import Loading from '../../atoms/Loading';
+import LogBody from '../../molecules/LogBody';
+import LogScrollBtns from '../../molecules/LogScrollBtns';
+import LogFilterBtns from '../../molecules/LogFilterBtns';
 import './Log.css';
 
 const Log = () => {
@@ -33,40 +35,25 @@ const Log = () => {
     }
     
     const endIndex = filteredMessages.length - activeViewIndex;
-    const begIndex = endIndex >= VIEW_LIMIT ?
-        endIndex - VIEW_LIMIT
-        : 0;
-    const logMessages = filteredMessages
-        .slice(begIndex, endIndex)
-        .map((m, i) => (
-            <div key={m.value.concat(i)}>
-                <span>{m.value}</span>
-            </div>
-        ));
-    const filterButtons = displayTypes ? displayTypes.map(t => (
-        <button className={`filter-btn${ctxFocus === t ? ' active' : ''}`} key={t} onClick={() => handleFilterClick(t)}>
-            <span>{t}</span>
-        </button>
-    )) : (
-        <Loading/>
-    );
-
+    const begIndex = endIndex >= VIEW_LIMIT ? endIndex - VIEW_LIMIT : 0;
+    const logMessages = filteredMessages.slice(begIndex, endIndex);
+        
     return (
         <div className="log">
             <div className="log-body">
-                <div className="log-body-inner-container">
-                    {logMessages}
-                </div>
-                <div className="log-body-view-index-btns">
-                    <div className="view-index-btns-container">
-                        <button className={`view-index-btn${(filteredMessages.length === 0 || activeViewIndex === filteredMessages.length - 1) ? ' disabled' : ''}`} onClick={() => adjustViewIndex(1)}>↑</button>
-                        <button className={`view-index-btn${activeViewIndex === 0 ? ' disabled' : ''}`} onClick={() => adjustViewIndex(-1)}>↓</button>
-                    </div>
-                </div>
+                <LogBody
+                    messages={logMessages}
+                />
+                <LogScrollBtns
+                    messagesLength={filteredMessages.length}
+                    handleAdjustViewIndex={adjustViewIndex}
+                />
             </div>
-            <div className="log-filter-btns">
-                {filterButtons}
-            </div>
+            <LogFilterBtns
+                ctxFocus={ctxFocus}
+                handleFilterClick={handleFilterClick}
+                displayTypes={displayTypes}
+            />
         </div>
     );
 }

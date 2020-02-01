@@ -1,6 +1,6 @@
 import React from 'react';
 import PlayerDisplay from '..//PlayerDisplay';
-import Log from '../../molecules/Log';
+import Log from '../Log';
 import './HUD.css';
 
 const HUD = () => {

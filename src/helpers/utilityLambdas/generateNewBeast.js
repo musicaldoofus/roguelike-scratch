@@ -2,20 +2,29 @@ import rollDie from './rollDie';
 import beastDictionary from '../dictionaries/beastDictionary';
 import elements from '../initModels/elements';
 
-const generateNewBeast = (allowedBeasts = ['spider']) => {
-  const lvl = 1; //depend on levels allowed for beast (abstract to a function or die roll)
-  const lvlMod = lvl - 1; //only allow beasts to mod at >= lvl2
-  const beastType = allowedBeasts[Math.floor(Math.random() * allowedBeasts.length)]
-  const beastRef = Object.assign({}, beastDictionary[beastType]);
-  const elementalScarcity = rollDie(beastRef.elementalScarcity) + lvlMod;
+const getKey = () => Math.random() * 100;
+
+const generateNewBeast = (allowedBeasts = ['spider'], locationLvl = 1) => {
   const floorDCChecks = { //roll DC checks based on Location lvl; think "roll on table 'y' for 'x' LocationLvl"
     elements: rollDie('2d4+4')
   };
-  beastRef.hp = rollDie(beastRef.healthDie);
-  beastRef.key = Math.random() * 100;
-  if (elementalScarcity > floorDCChecks.elements) beastRef.elem = 'fire';
-  beastRef.hp +=  lvlMod + elements.hasOwnProperty(beastRef.elem) ? elements[beastRef.elem].healthMod : 0;
-  return beastRef;
+  const lvlMod = locationLvl - 1; //only allow beasts to mod at >= lvl2
+
+  const beastBaseTitle = allowedBeasts[Math.floor(Math.random() * allowedBeasts.length)];
+  const beastRef = beastDictionary[beastBaseTitle];
+  const key = getKey();
+  const hp = rollDie(beastRef.healthDie) + lvlMod;
+  const maxHp = hp;
+  const elem = rollDie(beastRef.elementalScarcity) + lvlMod > floorDCChecks.elements ? elements[Math.floor(Math.random() * elements.length)] : null;
+
+  const generatedParams = {
+    hp,
+    maxHp,
+    key,
+    elem
+  }
+  
+  return Object.assign({}, beastRef, generatedParams);
 }
 
 export default generateNewBeast;

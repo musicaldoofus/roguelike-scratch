@@ -3,14 +3,10 @@
 .game {
     height: 100%;
     display: grid;
-    grid-template-columns: 18em auto; /*set min-width on .game-display*/
+    grid-template-columns: 18em auto 20em;
     grid-gap: 2em;
     overflow: hidden;
     font-family: 'Arvin', sans-serif;
     position: relative;
     transition: margin-left ease 0.2s;
-}
-
-.game.with-control-panel {
-    margin-left: 10em;
 }

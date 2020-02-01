@@ -4,7 +4,6 @@ import ActionDisplay from '../ActionDisplay';
 import './GameDisplay.css';
 
 const GameDisplay = () => {
-    console.log('render <GameDisplay>');
     return (
         <div className="game-display">
             <ActionDisplay/>

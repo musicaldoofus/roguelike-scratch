@@ -1,0 +1,18 @@
+/*BeatHealthBar.css*/
+
+.health-bar {
+    width: 100%;
+    display: block;
+    height: 3px;
+    position: absolute;
+    bottom: 0;
+    opacity: 0.7;
+}
+
+.health-bar > span {
+    display: block;
+    background-color: var(--red-dk-one);
+    display: block;
+    height: 100%;
+    transition: all ease 0.2s;
+}

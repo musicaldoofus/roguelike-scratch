@@ -1,11 +1,9 @@
 import React from 'react';
-import Room from '../../molecules/Room';
+import Room from '../Room';
 import './ActionDisplay.css';
 
 const ActionDisplay = () => {
     const roomIndex = 0;
-
-    console.log('render <ActionDisplay>');
     return (
         <div className="action-display">
             <Room roomIndex={roomIndex}/>

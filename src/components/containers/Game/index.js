@@ -4,7 +4,7 @@ import Console from '../Console';
 import HUD from '../HUD';
 import ControlsPanel from '../ControlsPanel';
 import GameDisplay from '../GameDisplay';
-import CommandInstructionPanel from '../CommandInstructionPanel';
+import InfoPanel from '../InfoPanel';
 import './Game.css';
 
 const Game = () => {
@@ -15,7 +15,7 @@ const Game = () => {
                 <HUD/>
                 <ControlsPanel/>
                 <GameDisplay/>
-                <CommandInstructionPanel/>
+                <InfoPanel/>
             </div>
         </GameStateProvider>
     );
