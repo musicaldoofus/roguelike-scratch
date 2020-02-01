@@ -1,15 +1,14 @@
 import React from 'react';
-import { useGameState } from '../../../helpers/reducers/gameStateReducer';
 import Room from '../../molecules/Room';
 import './ActionDisplay.css';
 
 const ActionDisplay = () => {
-    const [gameState] = useGameState();
+    const roomIndex = 0;
 
-    const roomData = gameState.location.rooms ? gameState.location.rooms.filter(r => r.id === gameState.player.levelCoords.roomId)[0] : null;
+    console.log('render <ActionDisplay>');
     return (
         <div className="action-display">
-            {roomData && <Room {...roomData}/>}
+            <Room roomIndex={roomIndex}/>
         </div>
     );
 }

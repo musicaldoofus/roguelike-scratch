@@ -1,12 +1,7 @@
 import React, { createContext, useContext, useReducer, useMemo } from 'react';
 import initGameState from '../initModels/initGameState';
-import beastDictionary from '../dictionaries/beastDictionary';
 import toCoords, { toIndex } from '../utilityLambdas/toCoords';
 import rollDie from '../utilityLambdas/rollDie';
-
-/*
-todo: add 'rolling' logic and compare functions for moves
-*/
 
 const GameStateContext = createContext();
 
@@ -19,6 +14,7 @@ const useGameState = () => {
 }
 
 const gameStateReducer = (gameState, action) => {
+    gameState.turn += 1 ; //find a performant way to do this without mutation
     const filteredRest = (obj, filterKey) => Object.fromEntries(
         Object.keys(obj)
           .filter(key => !filterKey.test(key))
@@ -28,6 +24,7 @@ const gameStateReducer = (gameState, action) => {
     const gameRestFromLocation = filteredRest(gameState, /location/);
     
     const handleTargetBeast = (beast) => {
+        gameState.turn -= 1
         const targetBeast = beast ? beast : action.targetBeast;
         const locationRest = filteredRest(gameState.location, /(nearbyBeasts|targetState)/);
         const gameRest = filteredRest(addLog({ctx: 'room', value: `Targeting ${targetBeast.baseTitle}.`}), /location/);
@@ -44,7 +41,6 @@ const gameStateReducer = (gameState, action) => {
     }
 
     const addLog = (msgs) => {
-        //console.log('addMsg', msgs);
         if (!msgs) throw new Error('Must include msgs');
         if (Array.isArray(msgs)) {
             msgs.forEach(msg => {
@@ -55,26 +51,24 @@ const gameStateReducer = (gameState, action) => {
         const gameRest = filteredRest(gameState, /log/);
         const logRest = filteredRest(gameState.log, /messages/);
         
+        const formattedMsgs = Array.isArray(msgs) ? msgs.map(({ctx, value}) => ({ctx, value: `${gameState.turn} : ${value}`})) : {ctx: msgs.ctx, value: `${gameState.turn} : ${msgs.value}`};
+        
         return {
             log: {
-                messages: gameState.log.messages.concat([].concat(msgs)),
+                messages: gameState.log.messages.concat(formattedMsgs),
                 ...logRest
             },
             ...gameRest
         };
     }
-    
-    const attackFrom = (params) => {
-        return {
-            
-        };
-    }
 
     switch (action.type) {
         case 'printGameState': {
+            gameState.turn -= 1
             console.log('print gameState', gameState);
             return addLog({ctx: 'console', value: 'Printed gameState'});
         }
+
         case 'addLog': return addLog(action);
 
         case 'clearRoom': {
@@ -112,8 +106,9 @@ const gameStateReducer = (gameState, action) => {
         }
 
         case 'handleClickTile': {
+            gameState.turn -= 1; //hack
             const loc = gameState.location;
-            const dimensionality = loc.rooms[loc.level - 1].dimensionality;
+            const dimensionality = loc.rooms[loc.level - 1].dimensionality; //fix ind in loc.rooms[ind]
             const beastOnTile = loc.nearbyBeasts.filter(({coords}) => {
                 const tileCoords = toCoords(action.index, dimensionality);
                 return coords.x === tileCoords.x && coords.y === tileCoords.y;
@@ -121,7 +116,7 @@ const gameStateReducer = (gameState, action) => {
 
             if (beastOnTile.length > 0) return handleTargetBeast(beastOnTile[0]);
             else {
-                const gameRest = filteredRest(addLog({ctx: 'roomHUD', value: JSON.stringify(action.tile)}), /location/);
+                const gameRest = filteredRest(addLog({ctx: 'roomHUD', value: `Clicked tile ${action.index}.`}), /location/);
                 const locationRest = filteredRest(gameState.location, /nearbyBeasts/);
                 return {
                     location: {
@@ -134,6 +129,7 @@ const gameStateReducer = (gameState, action) => {
         }
 
         case 'openTargetBeast': {
+            gameState.turn -= 1
             const locationRest = filteredRest(gameState.location, /targetState/);
             const targetState = true;
             
@@ -159,7 +155,9 @@ const gameStateReducer = (gameState, action) => {
             const dY = dir === 'up' ? -1 : dir === 'down' ? 1 : 0;
             const tileIndex = toIndex({x: x + dX, y: y + dY}, dimensionality);
             const targetTile = room.tiles[tileIndex];
-            if (targetTile.tileType === 'wall') return addLog({ctx: 'room', value: 'You kick the wall out of spite. Ow.'});
+            if (targetTile.tileType === 'wall') {
+                return addLog({ctx: 'room', value: 'You kick the wall out of spite. Ow.'});
+            }
             const nearbyBeastsCoords = gameState.location.nearbyBeasts.map(({coords}) => toIndex(coords, dimensionality));
             if (nearbyBeastsCoords.indexOf(tileIndex) > -1) {
                 const beastTarget = gameState.location.nearbyBeasts[nearbyBeastsCoords.indexOf(tileIndex)];
@@ -235,6 +233,7 @@ const gameStateReducer = (gameState, action) => {
         }
 
         case 'handleToggleInventory': {
+            gameState.turn -= 1
             const gameRest = filteredRest(gameState, /focusMode/);
             
             return {
@@ -244,6 +243,7 @@ const gameStateReducer = (gameState, action) => {
         }
 
         case 'handleClosePanel': {
+            gameState.turn -= 1
             const gameRest = filteredRest(gameState, /focusMode/);
             
             return {
@@ -253,6 +253,7 @@ const gameStateReducer = (gameState, action) => {
         }
 
         case 'toggleConsole': {
+            gameState.turn -= 1
             const gameRest = filteredRest(gameState, /focusMode/);
             const focusMode = gameState.focusMode === 'console' ? null : 'console'
             

@@ -2,6 +2,7 @@ import initPlayerStats from './initPlayerStats';
 import generateMap from '../utilityLambdas/generateMap';
 
 const initGameState = {
+    turn: 0,
     player: initPlayerStats,
     log: {
         messages: [{

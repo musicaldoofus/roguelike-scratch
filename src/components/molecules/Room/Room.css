@@ -1,13 +1,25 @@
 /*Room.css*/
 
+
 .room {
-    background-color: var(--smoke);
-    border: 2px solid var(--slate-two);
     position: relative;
     display: block;
     height: 100%;
     width: 100%;
+    border: 2px solid var(--slate-two);
+}
+
+.room-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
     display: grid;
+}
+
+.tile-grid {
+    background-color: var(--smoke);
 }
 
 .map-tile {
