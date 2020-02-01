@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/roguelike-scratch/static/css/main.44849ba2.chunk.css",
-    "main.js": "/roguelike-scratch/static/js/main.54c1bdac.chunk.js",
-    "main.js.map": "/roguelike-scratch/static/js/main.54c1bdac.chunk.js.map",
+    "main.css": "/roguelike-scratch/static/css/main.e62166c4.chunk.css",
+    "main.js": "/roguelike-scratch/static/js/main.b2ade066.chunk.js",
+    "main.js.map": "/roguelike-scratch/static/js/main.b2ade066.chunk.js.map",
     "runtime-main.js": "/roguelike-scratch/static/js/runtime-main.ae9dd106.js",
     "runtime-main.js.map": "/roguelike-scratch/static/js/runtime-main.ae9dd106.js.map",
     "static/js/2.8b60723f.chunk.js": "/roguelike-scratch/static/js/2.8b60723f.chunk.js",
     "static/js/2.8b60723f.chunk.js.map": "/roguelike-scratch/static/js/2.8b60723f.chunk.js.map",
     "index.html": "/roguelike-scratch/index.html",
-    "precache-manifest.5e2b27578986e32d446e704003effc4b.js": "/roguelike-scratch/precache-manifest.5e2b27578986e32d446e704003effc4b.js",
+    "precache-manifest.4afe7d0152dae5875d86663fd35307a8.js": "/roguelike-scratch/precache-manifest.4afe7d0152dae5875d86663fd35307a8.js",
     "service-worker.js": "/roguelike-scratch/service-worker.js",
-    "static/css/main.44849ba2.chunk.css.map": "/roguelike-scratch/static/css/main.44849ba2.chunk.css.map",
+    "static/css/main.e62166c4.chunk.css.map": "/roguelike-scratch/static/css/main.e62166c4.chunk.css.map",
     "static/js/2.8b60723f.chunk.js.LICENSE": "/roguelike-scratch/static/js/2.8b60723f.chunk.js.LICENSE",
     "static/media/index.css": "/roguelike-scratch/static/media/Arvin.4ea29ecd.ttf",
     "static/media/rl_avatar.svg": "/roguelike-scratch/static/media/rl_avatar.a75d3f2a.svg"
@@ -18,7 +18,7 @@
   "entrypoints": [
     "static/js/runtime-main.ae9dd106.js",
     "static/js/2.8b60723f.chunk.js",
-    "static/css/main.44849ba2.chunk.css",
-    "static/js/main.54c1bdac.chunk.js"
+    "static/css/main.e62166c4.chunk.css",
+    "static/js/main.b2ade066.chunk.js"
   ]
 }
