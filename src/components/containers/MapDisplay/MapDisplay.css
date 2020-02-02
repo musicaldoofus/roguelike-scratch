@@ -1,0 +1,16 @@
+/*MapDisplay.css*/
+
+.map-display {
+    display: block;
+    height: 100%;
+    width: 100%;
+    grid-column: 2 / 3;
+}
+
+.map-display-inner-container {
+
+}
+
+.map-display-tile {
+    display: block;
+}

@@ -1,7 +1,8 @@
 /*PlayerDisplay.css*/
 
 .player-display {
-    display: grid;
-    grid-template-columns: 1fr 3fr;
+    display: flex;
+    flex-direction: row;
     position: relative;
+    padding-bottom: 1em;
 }

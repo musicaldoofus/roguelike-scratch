@@ -3,6 +3,8 @@
 .player-display-stats {
     background-color: var(--smoke);
     border: 2px solid var(--gray);
+    display: block;
+    width: 100%;
 }
 
 .player-display-inner {

@@ -2,12 +2,10 @@
 
 .log {
     display: grid;
-    grid-template-rows: 26em 4em;
+    grid-template-rows: 1fr 4em;
 }
 
 .log-body {
-    border: 2px solid var(--slate-one);
-    background-color: var(--smoke);
     display: block;
     height: 100%;
     width: 100%;

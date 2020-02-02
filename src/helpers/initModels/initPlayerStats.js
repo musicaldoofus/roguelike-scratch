@@ -1,10 +1,8 @@
 const samplePlayerStats = {
-    levelCoords: {
-        roomId: 0 //
-    },
     roomCoords: {
         x: 1,
-        y: 2
+        y: 2,
+        roomIndex: 0
     },
     inventory: [{
         type: 'weapon',

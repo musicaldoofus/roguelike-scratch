@@ -1,15 +1,12 @@
 /*App.css*/
 
-.display-img {
-  height: 8em;
-  width: 8em;
-}
-
-.display-img > img {
-  max-height: 100%;
-  width: 100%;
-}
-
 button {
   transition: all ease 0.2s;
+}
+
+.panel {
+  background-color: var(--smoke);
+  padding: 0.25em; 
+  border: 2px solid var(--slate-two);
+  font-size: 0.8em;
 }

@@ -30,7 +30,7 @@ const beastDictionary = {
     strength: 5,
     elementalScarcity: '1d4',
     imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/1/1d/Albino_Rat.jpg',
-    dyingMessage: 'You unmake the unbeast. Hm.'
+    dyingMessage: 'You unmake the unbeast. Huh.'
   }
 }
 

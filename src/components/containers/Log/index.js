@@ -40,7 +40,7 @@ const Log = () => {
         
     return (
         <div className="log">
-            <div className="log-body">
+            <div className="log-body panel" style={{padding: '0.25em'}}>
                 <LogBody
                     messages={logMessages}
                 />

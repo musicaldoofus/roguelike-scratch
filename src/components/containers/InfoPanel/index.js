@@ -1,5 +1,4 @@
 import React from 'react';
-import TargetHUD from '../TargetHUD';
 import './InfoPanel.css';
 
 const CommandInfoPanel = () => {
@@ -21,9 +20,8 @@ const CommandInfoPanel = () => {
 const InfoPanel = () => {
     return (
         <div className="info-panel">
-            <div className="info-panel-inner">
+            <div className="info-panel-inner panel">
                 <CommandInfoPanel/>
-                <TargetHUD/>
             </div>
         </div>
     );

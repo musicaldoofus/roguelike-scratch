@@ -1,10 +1,9 @@
 /*ActionHUD.css*/
 
 .action-heads-up-display {
-    border: 2px solid var(--slate-one);
-    background-color: var(--smoke);
     display: block;
     height: 100%;
     width: 100%;
     position: relative;
+    grid-column: 1 / 2;
 }
