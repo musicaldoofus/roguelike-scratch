@@ -8,8 +8,8 @@ const ActorGrid = ({gridStyle, nearbyBeasts, onClick}) => {
             {nearbyBeasts.length > 0 && (
                 nearbyBeasts.map(beast => {
                     const beastGridAreaStyle = {
-                        gridColumn: `${beast.coords.x} / ${beast.coords.x + 1}`,
-                        gridRow: `${beast.coords.y} / ${beast.coords.y + 1}`                
+                        gridColumn: `${beast.coords.x + 1} / ${beast.coords.x + 1}`,
+                        gridRow: `${beast.coords.y + 1} / ${beast.coords.y + 1}`
                     };
                     const dispatchParams = {
                         ctx: 'BeastCell',

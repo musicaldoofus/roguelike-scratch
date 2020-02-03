@@ -3,8 +3,8 @@ import PlayerCell from '../../atoms/PlayerCell';
 
 const PlayerGrid = ({gridStyle, playerCoords}) => {
     const gridAreaStyle = {
-        gridColumn: `${playerCoords.x} / ${playerCoords.x + 1}`,
-        gridRow: `${playerCoords.y} / ${playerCoords.y + 1}`                
+        gridColumn: `${playerCoords.x + 1} / ${playerCoords.x + 1}`,
+        gridRow: `${playerCoords.y + 1} / ${playerCoords.y + 1}`
     };
     
     return (

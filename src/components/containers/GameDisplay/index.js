@@ -5,6 +5,7 @@ import MapDisplay from '../MapDisplay';
 import './GameDisplay.css';
 
 const GameDisplay = () => {
+    //console.log('invoke <GameDisplay>')
     return (
         <div className="game-display">
             <ActionDisplay/>

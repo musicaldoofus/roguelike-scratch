@@ -8,6 +8,7 @@ import InfoPanel from '../InfoPanel';
 import './Game.css';
 
 const Game = () => {
+    //console.log('Invoke <Game>');
     return (
         <GameStateProvider>
             <Console/>

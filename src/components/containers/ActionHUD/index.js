@@ -6,7 +6,7 @@ import './ActionHUD.css';
 const ActionHUD = () => {
     const [gameState] = useGameState();
 
-    const roomStats = gameState.location.nearbyBeasts.length;
+    const roomStats = gameState.location.nearbyBeasts.filter(beast => beast.coords.roomIndex === gameState.player.roomCoords.roomIndex).length;
     const roomHUD = gameState.log.messages.filter(m => m.ctx === 'roomHUD');
     const roomHUDTip = roomHUD ? roomHUD[roomHUD.length - 1] : null;
     return (

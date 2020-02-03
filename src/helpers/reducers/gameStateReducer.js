@@ -63,6 +63,33 @@ const gameStateReducer = (gameState, action) => {
         };
     }
 
+    const handleMoveRooms = (toRoomIndex, tileIndex, fromEdge) => {
+        const room = gameState.location.rooms[toRoomIndex];
+        const toEdge = fromEdge === 'right'
+            ? 'left'
+            : fromEdge === 'top'
+                ? 'bottom'
+                : fromEdge === 'left' ?
+                    'right'
+                    : 'top';
+        const targetTileIndex = room.portalIndices[toEdge];
+        const dimensionality = room.dimensionality;
+        const { x, y } = toCoords(targetTileIndex, dimensionality);
+        const gameRest = filteredRest(addLog({ctx: 'room', value: 'You open the portal.'}), /player/);
+        const playerRest = filteredRest(gameState.player, /roomCoords/);
+        return {
+            player: {
+                roomCoords: {
+                    x: fromEdge === 'right' ? x + 1 : fromEdge === 'left' ? x - 1 : x,
+                    y,//: fromEdge === 'top' ? y + 1 : fromEdge === 'bottom' ? y - 1 : y,
+                    roomIndex: toRoomIndex
+                },
+                ...playerRest
+            },
+            ...gameRest
+        };
+    }
+
     switch (action.type) {
         case 'printGameState': {
             gameState.turn -= 1
@@ -94,7 +121,13 @@ const gameStateReducer = (gameState, action) => {
             const openTiles = room.tiles
                 .map((tile, i) => tile.tileType === 'none' ? toCoords(i, dimensionality) : null) //improve - need to check if beast or player is on tile as well
                 .filter(t => typeof t === 'object' ? t : false);
-            const updatedBeast = Object.assign({}, action.beast, {coords: openTiles[Math.floor(Math.random() * openTiles.length)]}); //extend - allow to check loc.rooms[loc.level - 1].beastGenerationRules
+            const { x, y } = openTiles[Math.floor(Math.random() * openTiles.length)];
+            const coords = {
+                x,
+                y,
+                roomIndex: action.roomIndex
+            };
+            const updatedBeast = Object.assign({}, action.beast, { coords }); //extend - allow to check loc.rooms[loc.level - 1].beastGenerationRules
             
             return {
                 location: {
@@ -106,7 +139,6 @@ const gameStateReducer = (gameState, action) => {
         }
 
         case 'handleClickTile': {
-            console.log('handleCT');
             gameState.turn -= 1; //hack
             const gameRest = filteredRest(addLog({ctx: 'roomHUD', value: `Clicked tile ${action.index}.`}), /location/);
             const locationRest = filteredRest(gameState.location, /nearbyBeasts/);
@@ -136,29 +168,35 @@ const gameStateReducer = (gameState, action) => {
         case 'handleTargetBeast': return handleTargetBeast();
 
         case 'handleMoveActor': {
-            //assume player for first iteration to test handlers
-            //const actor = 'player';
             const dir = action.dir;
-            const room = gameState.location.rooms[gameState.location.level - 1];
+            const room = gameState.location.rooms[gameState.player.roomCoords.roomIndex];
             const dimensionality = room.dimensionality;
             const { x, y } = gameState.player.roomCoords;
             const dX = dir === 'left' ? -1 : dir === 'right' ? 1 : 0;
             const dY = dir === 'up' ? -1 : dir === 'down' ? 1 : 0;
             const tileIndex = toIndex({x: x + dX, y: y + dY}, dimensionality);
             const targetTile = room.tiles[tileIndex];
+            
             if (targetTile.tileType === 'wall') {
                 return addLog({ctx: 'room', value: 'You kick the wall out of spite. Ow.'});
             }
+
+            if (targetTile.tileType === 'portal') {
+                const edge = x + dX === dimensionality - 1 ? 'right' : x + dX === 0 ? 'left' : y + dY === dimensionality - 1 ? 'bottom' : 'top';
+                return handleMoveRooms(targetTile.toRoomIndex, tileIndex, edge);
+            }
+
             const nearbyBeastsCoords = gameState.location.nearbyBeasts.map(({coords}) => toIndex(coords, dimensionality));
             if (nearbyBeastsCoords.indexOf(tileIndex) > -1) {
                 const beastTarget = gameState.location.nearbyBeasts[nearbyBeastsCoords.indexOf(tileIndex)];
                 const weapon = gameState.player.inventory.filter(item => item.type === 'weapon' && item.isEquipped)[0];
-                const amtFromAttack = rollDie(weapon.damage);
+                const amtFromAttack = rollDie(weapon ? weapon.damage : `1d2+${gameState.player.baseStats.strength}`);
                 const updatedBeast = Object.assign({}, beastTarget, {isTargeted: true, hp: beastTarget.hp - amtFromAttack >= 0 ? beastTarget.hp - amtFromAttack : 0});
-                const msg = updatedBeast.hp > 0 ? `You attack the ${beastTarget.baseTitle}` : updatedBeast.dyingMessage;
+                const msg = updatedBeast.hp > 0 ? `You attack the ${beastTarget.baseTitle}${weapon ? ` with a ${weapon.baseTitle}.` : ''}` : updatedBeast.dyingMessage;
                 const gameRest = filteredRest(addLog({ctx: 'room', value: msg}), /location/);
                 const locationRest = filteredRest(gameState.location, /nearbyBeasts/);
 
+                //update return value: conditionally return new array only if necessary (i.e. passthrough instead of construct new)
                 return {
                     location: {
                         nearbyBeasts: gameState.location.nearbyBeasts.filter(b => b.key !== updatedBeast.key).concat(updatedBeast.hp > 0 ? updatedBeast : []),
@@ -167,6 +205,7 @@ const gameStateReducer = (gameState, action) => {
                     ...gameRest
                 };
             }
+
             const gameRest = filteredRest(gameState, /player/);
             const playerRest = filteredRest(gameState.player, /roomCoords/);
            
@@ -174,7 +213,8 @@ const gameStateReducer = (gameState, action) => {
                 player: {
                     roomCoords: {
                         x: x + dX,
-                        y: y + dY
+                        y: y + dY,
+                        roomIndex: gameState.player.roomCoords.roomIndex
                     },
                     ...playerRest
                 },

@@ -3,9 +3,7 @@
 .room {
     position: relative;
     display: block;
-    height: 100%;
-    width: 100%;
-    border: 2px solid var(--slate-two);
+    margin: auto;
 }
 
 .room-grid {
@@ -32,20 +30,30 @@
     background-color: var(--red-dk-two);
 }
 
-.map-tile.none {
+.map-tile {
     display: flex;
     position: relative;
 }
 
 .map-tile.none::before {
     position: absolute;
-    top: 50%;
+    top: -50%;
     content: '.';
     left: 50%;
     transform: translateX(-50%);
 }
 
-.beast, .player {
+.map-tile.portal::before {
+    position: absolute;
+    top: -43%;
+    content: '+';
+    left: 44%;
+    transform: translateX(-50%);
+    font-size: 1.2em;
+}
+
+.beast,
+.player {
     display: flex;
     width: 100%;
     height: 100%;
@@ -53,9 +61,12 @@
     position: relative;
 }
 
-.beast::after, .player::after {
-    margin: auto;
-    font-size: 1em;
+.beast::after,
+.player::after {
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .player::after {

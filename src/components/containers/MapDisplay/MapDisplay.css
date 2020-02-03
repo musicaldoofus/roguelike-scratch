@@ -1,14 +1,21 @@
 /*MapDisplay.css*/
 
 .map-display {
-    display: block;
+    display: flex;
     height: 100%;
     width: 100%;
     grid-column: 2 / 3;
+    font-size: inherit !important;
+    background-color: var(--red-dk-three) !important;
 }
 
 .map-display-inner-container {
-
+    margin: auto;
+    font-size: 2px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-content: flex-start;
 }
 
 .map-display-tile {

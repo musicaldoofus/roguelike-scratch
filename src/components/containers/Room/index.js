@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useGameState } from '../../../helpers/reducers/gameStateReducer';
 import PlayerGrid from '../../molecules/PlayerGrid';
 import ActorGrid from '../../molecules/ActorGrid';
@@ -8,6 +8,7 @@ import './Room.css';
 const gridUnit = '1em';
 
 const Room = ({roomIndex}) => {
+    //console.log('Invoke <Room>');
     const [gameState, dispatchGameState] = useGameState();
 
     const ctx = 'Room';
@@ -59,16 +60,17 @@ const Room = ({roomIndex}) => {
     const room = gameState.location.rooms[roomIndex];
     const dimensionality = room.dimensionality;
     const tiles = room.tiles;
+    const playerCoords = gameState.player.roomCoords;
+    const nearbyBeasts = gameState.location.nearbyBeasts.filter(beast => beast.coords.roomIndex === roomIndex);
+
+    const handleTargetBeast = dispatchGameState;
     const gridStyle = {
         gridTemplateColumns: `repeat(${dimensionality}, ${gridUnit})`,
         gridTemplateRows: `repeat(${dimensionality}, ${gridUnit})`
     };
-    const playerCoords = gameState.player.roomCoords;
-    const nearbyBeasts = gameState.location.nearbyBeasts;
-    const handleTargetBeast = dispatchGameState;
     
-    return (
-        <div className="room">
+    const display = (
+        <>
             <PlayerGrid
                 gridStyle={gridStyle}
                 playerCoords={playerCoords}
@@ -84,6 +86,17 @@ const Room = ({roomIndex}) => {
                 roomIndex={roomIndex}
                 handleClickTile={dispatchGameState}
             />
+        </>
+    );
+
+    const roomStyle = {
+        width: `${dimensionality}em`,
+        height: `${dimensionality}em`
+    };
+    
+    return (
+        <div className="room" style={roomStyle}>
+            {display}
         </div>
     );
 }

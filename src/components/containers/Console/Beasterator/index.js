@@ -5,7 +5,7 @@ import { useGameState } from '../../../../helpers/reducers/gameStateReducer';
 import './Beasterator.css';
 
 const Beasterator = () => {
-  const [, dispatchGameState] = useGameState();
+  const [gameState, dispatchGameState] = useGameState();
   const [beast, setBeast] = useState(null);
   const [selectedBeastList, setBeastList] = useState([]);
   const ctx = 'console';
@@ -34,7 +34,7 @@ const Beasterator = () => {
       ctx,
       type: 'pushBeastToRoom',
       beast: newBeast,
-      roomIndex: 0
+      roomIndex: gameState.player.roomCoords.roomIndex
     });
     setBeast(null);
   }

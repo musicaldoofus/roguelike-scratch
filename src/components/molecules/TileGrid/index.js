@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import Cell from '../../atoms/Cell';
 
 const TileGrid = ({tiles, gridStyle, handleClickTile}) => {
+    //console.log('Invoke <TileGrid>')
     const roomCoords = useMemo(() => {
         const onClickTile = (index) => handleClickTile({
             ctx: 'cell',
@@ -9,12 +10,13 @@ const TileGrid = ({tiles, gridStyle, handleClickTile}) => {
             index
         });
 
-        return tiles.map(({tileType}, i) => {
+        return tiles.map(({tileType, toRoomIndex}, i) => {
             return (
                 <Cell
                     key={i}
                     tileType={tileType}
                     onClick={() => onClickTile(i)}
+                    toRoomIndex={toRoomIndex}
                 />
             );
         });
