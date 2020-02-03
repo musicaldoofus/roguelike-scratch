@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/roguelike-scratch/precache-manifest.4afe7d0152dae5875d86663fd35307a8.js"
+  "/roguelike-scratch/precache-manifest.7195888e706da0a8acf4d803e804f351.js"
 );
 
 self.addEventListener('message', (event) => {
