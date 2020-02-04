@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { useGameState } from '../../../helpers/reducers/gameStateReducer';
 import PlayerGrid from '../../molecules/PlayerGrid';
 import ActorGrid from '../../molecules/ActorGrid';

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useMemo } from 'react';
 import initGameState from '../initModels/initGameState';
 import toCoords, { toIndex } from '../utilityLambdas/toCoords';
 import rollDie from '../utilityLambdas/rollDie';
+import generateMap from '../utilityLambdas/generateMap';
 
 const GameStateContext = createContext();
 
@@ -13,220 +14,207 @@ const useGameState = () => {
     return ctx;
 }
 
-const gameStateReducer = (gameState, action) => {
-    gameState.turn += 1 ; //find a performant way to do this without mutation
-    const filteredRest = (obj, filterKey) => Object.fromEntries(
-        Object.keys(obj)
-          .filter(key => !filterKey.test(key))
-          .map(key => [key, obj[key]])
-        );
+const handleTargetBeast = (gameState, action) => {
+    const targetBeast = action.beast ? action.beast : action.targetBeast;
+    const updatedBeast = Object.assign({}, targetBeast, {isTargeted: true});
     
-    const gameRestFromLocation = filteredRest(gameState, /location/);
+    return {
+        location: Object.assign({}, gameState.location, {
+            targetState: false,
+            nearbyBeasts: gameState.location.nearbyBeasts.filter(b => b.key !== targetBeast.key).map(b => Object.assign({}, b, {isTargeted: false})).concat(updatedBeast)
+        })
+    }
+}
+
+const addLog = (gameState, msgs) => {
+    if (!msgs) throw new Error('Must include msgs');
+    if (Array.isArray(msgs)) {
+        msgs.forEach(msg => {
+            if (!msg.ctx) throw new Error(`You must provide context in ${JSON.stringify(msg)}`);
+        });
+    }
+    else if (!msgs.ctx)  throw new Error(`You must provide context in ${JSON.stringify(msgs)}`);
+    const formattedMsgs = Array.isArray(msgs) ? msgs.map(({ctx, value}) => ({ctx, value: `${gameState.turn} : ${value}`})) : {ctx: msgs.ctx, value: `${gameState.turn} : ${msgs.value}`};
     
-    const handleTargetBeast = (beast = action.beast) => {
-        //if (!beast) throw new Error(`Must supply valid beast obj in handleTargetBeast`);
-        gameState.turn -= 1;
-        const targetBeast = beast ? beast : action.targetBeast;
-        const locationRest = filteredRest(gameState.location, /(nearbyBeasts|targetState)/);
-        const gameRest = filteredRest(addLog({ctx: 'room', value: `Targeting ${targetBeast.baseTitle}.`}), /location/);
-        const updatedBeast = Object.assign({}, targetBeast, {isTargeted: true});
-        
-        return {
-            location: {
-                targetState: false,
-                nearbyBeasts: gameState.location.nearbyBeasts.filter(b => b.key !== targetBeast.key).map(b => Object.assign({}, b, {isTargeted: false})).concat(updatedBeast),
-                ...locationRest
-            },
-            ...gameRest
-        }
-    }
+    return {
+        log: Object.assign({}, gameState.log, {
+            messages: gameState.log.messages.concat(formattedMsgs)
+        })
+    };
+}
 
-    const addLog = (msgs) => {
-        if (!msgs) throw new Error('Must include msgs');
-        if (Array.isArray(msgs)) {
-            msgs.forEach(msg => {
-                if (!msg.ctx) throw new Error(`You must provide context in ${JSON.stringify(msg)}`);
-            });
-        }
-        else if (!msgs.ctx)  throw new Error(`You must provide context in ${JSON.stringify(msgs)}`);
-        const gameRest = filteredRest(gameState, /log/);
-        const logRest = filteredRest(gameState.log, /messages/);
-        
-        const formattedMsgs = Array.isArray(msgs) ? msgs.map(({ctx, value}) => ({ctx, value: `${gameState.turn} : ${value}`})) : {ctx: msgs.ctx, value: `${gameState.turn} : ${msgs.value}`};
-        
-        return {
-            log: {
-                messages: gameState.log.messages.concat(formattedMsgs),
-                ...logRest
-            },
-            ...gameRest
-        };
-    }
+const handleMoveLevels = (gameState, action) => {
+    const rooms = generateMap();
+    const randomRoomIndex = Math.floor(Math.random() * rooms.length);
+    const randomRoom = rooms[randomRoomIndex];
+    const openSpacesInRoom = randomRoom.tiles.map(({tileType}, i) => ({tileType, i})).filter(({tileType}) => tileType === 'none').map(({i}) => i); //update - favor middle area of the room
+    const targetTileIndex = Math.floor(Math.random() * openSpacesInRoom.length);
+    const { x, y } = toCoords(openSpacesInRoom[targetTileIndex]);
+    const nearbyBeasts = [];
 
-    const handleMoveRooms = (toRoomIndex, tileIndex, fromEdge) => {
-        const room = gameState.location.rooms[toRoomIndex];
-        const toEdge = fromEdge === 'right'
-            ? 'left'
-            : fromEdge === 'top'
-                ? 'bottom'
-                : fromEdge === 'left' ?
-                    'right'
-                    : 'top';
-        const targetTileIndex = room.portalIndices[toEdge];
-        const dimensionality = room.dimensionality;
-        const { x, y } = toCoords(targetTileIndex, dimensionality);
-        const gameRest = filteredRest(addLog({ctx: 'room', value: 'You open the portal.'}), /player/);
-        const playerRest = filteredRest(gameState.player, /roomCoords/);
-        return {
-            player: {
-                roomCoords: {
-                    x: fromEdge === 'right' ? x + 1 : fromEdge === 'left' ? x - 1 : x,
-                    y,//: fromEdge === 'top' ? y + 1 : fromEdge === 'bottom' ? y - 1 : y,
-                    roomIndex: toRoomIndex
-                },
-                ...playerRest
-            },
-            ...gameRest
-        };
-    }
-
-    switch (action.type) {
-        case 'printGameState': {
-            gameState.turn -= 1
-            console.log('print gameState', gameState);
-            return addLog({ctx: 'console', value: 'Printed gameState'});
-        }
-
-        case 'addLog': return addLog(action);
-
-        case 'clearRoom': {
-            const gameRest = filteredRest(addLog({ctx: 'console', value: 'Cleared the room.'}), /location/);
-            const locationRest = filteredRest(gameState.location, /nearbyBeasts/);
-            
-            return {
-                location: {
-                    nearbyBeasts: [],
-                    ...locationRest
-                },
-                ...gameRest
-            };
-        }
-
-        case 'pushBeastToRoom': {
-            const gameRest = filteredRest(addLog({ctx: 'console', value: `Pushing ${action.beast.baseTitle} to the room.`}), /location/);
-            const loc = gameState.location;
-            const room = loc.rooms[action.roomIndex];
-            const dimensionality = room.dimensionality;
-            const locationRest = filteredRest(loc, /(nearbyBeasts)/);
-            const openTiles = room.tiles
-                .map((tile, i) => tile.tileType === 'none' ? toCoords(i, dimensionality) : null) //improve - need to check if beast or player is on tile as well
-                .filter(t => typeof t === 'object' ? t : false);
-            const { x, y } = openTiles[Math.floor(Math.random() * openTiles.length)];
-            const coords = {
+    return {
+        location: Object.assign({}, gameState.location, {
+            rooms,
+            level: action.toLevelIndex,
+            nearbyBeasts
+        }),
+        player: Object.assign({}, gameState.player, {
+            roomCoords: {
                 x,
                 y,
-                roomIndex: action.roomIndex
-            };
-            const updatedBeast = Object.assign({}, action.beast, { coords }); //extend - allow to check loc.rooms[loc.level - 1].beastGenerationRules
-            
-            return {
-                location: {
-                    nearbyBeasts: loc.nearbyBeasts.filter(b => b.key !== action.beast.key).concat(updatedBeast),
-                    ...locationRest
-                },
-                ...gameRest
-            };
-        }
-
-        case 'handleClickTile': {
-            gameState.turn -= 1; //hack
-            const gameRest = filteredRest(addLog({ctx: 'roomHUD', value: `Clicked tile ${action.index}.`}), /location/);
-            const locationRest = filteredRest(gameState.location, /nearbyBeasts/);
-            return {
-                location: {
-                    nearbyBeasts: gameState.location.nearbyBeasts.map(b => Object.assign({}, b, {isTargeted: false})),
-                    ...locationRest
-                },
-                ...gameRest
+                roomIndex: randomRoomIndex
             }
-        }
+        })
+    };
+}
 
-        case 'openTargetBeast': {
-            gameState.turn -= 1
-            const locationRest = filteredRest(gameState.location, /targetState/);
-            const targetState = true;
-            
-            return {
-                location: {
-                    targetState,
-                    ...locationRest
-                },
-                ...gameRestFromLocation
-            };
-        }
-
-        case 'handleTargetBeast': return handleTargetBeast();
-
-        case 'handleMoveActor': {
-            const dir = action.dir;
-            const room = gameState.location.rooms[gameState.player.roomCoords.roomIndex];
-            const dimensionality = room.dimensionality;
-            const { x, y } = gameState.player.roomCoords;
-            const dX = dir === 'left' ? -1 : dir === 'right' ? 1 : 0;
-            const dY = dir === 'up' ? -1 : dir === 'down' ? 1 : 0;
-            const tileIndex = toIndex({x: x + dX, y: y + dY}, dimensionality);
-            const targetTile = room.tiles[tileIndex];
-            
-            if (targetTile.tileType === 'wall') {
-                return addLog({ctx: 'room', value: 'You kick the wall out of spite. Ow.'});
+const handleMoveRooms = (gameState, toRoomIndex/*, dir, fromEdge*/) => {
+    const room = gameState.location.rooms[toRoomIndex];
+    const portalDirections = Object.keys(room.portalIndices);
+    const randomIndex = Math.floor(Math.random() * portalDirections.length);
+    const targetTileDirection = portalDirections[randomIndex];
+    const targetTileIndex = room.portalIndices[targetTileDirection]; //improve - "link" portals together to act as pointers, then develop tunnels (separate type of gameplay from caves)
+    //console.log('room and targetTileIndex', room, targetTileIndex)
+    const dimensionality = room.dimensionality;
+    const { x, y } = toCoords(targetTileIndex, dimensionality);
+    
+    return {
+        player: Object.assign({}, gameState.player, {
+            roomCoords: {
+                x,//: fromEdge === 'right' ? x + 1 : fromEdge === 'left' ? x - 1 : x,
+                y,//: fromEdge === 'top' ? y + dimensionality : fromEdge === 'bottom' ? y - 1 : y,
+                roomIndex: toRoomIndex
             }
+        })
+    };
+}
 
-            if (targetTile.tileType === 'portal') {
-                const edge = x + dX === dimensionality - 1 ? 'right' : x + dX === 0 ? 'left' : y + dY === dimensionality - 1 ? 'bottom' : 'top';
-                return handleMoveRooms(targetTile.toRoomIndex, tileIndex, edge);
+
+const handleClearRoom = (gameState) => {
+    return {
+        turn: gameState.turn + 1,
+        location: Object.assign({}, gameState.location, {
+            nearbyBeasts: []
+        })
+    };
+}
+
+const handlePushBeastToRoom = (gameState, action) => {
+    const loc = gameState.location;
+    const room = loc.rooms[action.roomIndex];
+    const dimensionality = room.dimensionality;
+    const openTiles = room.tiles
+        .map((tile, i) => tile.tileType === 'none' ? toCoords(i, dimensionality) : null) //improve - need to check if beast or player is on tile as well
+        .filter(t => typeof t === 'object' ? t : false);
+    const { x, y } = openTiles[Math.floor(Math.random() * openTiles.length)];
+    const coords = {
+        x,
+        y,
+        roomIndex: action.roomIndex
+    };
+    const updatedBeast = Object.assign({}, action.beast, { coords }); //extend - allow to check loc.rooms[loc.level - 1].beastGenerationRules
+    
+    return {
+        location: Object.assign({}, gameState.location, {
+            nearbyBeasts: loc.nearbyBeasts.filter(b => b.key !== action.beast.key).concat(updatedBeast)
+        })
+    };
+}
+
+const handleClickTile = (gameState, action) => {
+    const beastOnTile = gameState.location.nearbyBeasts.filter(({coords}) => toIndex(coords) === action.index);
+    const { x, y } = toCoords(action.index, gameState.location.rooms[gameState.player.roomCoords.roomIndex].dimensionality);
+
+    return {
+        ...addLog(gameState, {ctx: 'room', value: `You clicked tile ${action.index} at x: ${x}, y: ${y}`}),
+        location: Object.assign({}, gameState.location, {
+            nearbyBeasts: gameState.location.nearbyBeasts.map(b => Object.assign({}, b, {isTargeted: b.key === beastOnTile.key}))
+        })
+    };
+}
+
+const handleOpenTarget = (gameState) => {
+    const targetState = true;
+    
+    return {
+        location: Object.assign({}, gameState.location, {
+            targetState
+        })
+    };
+}
+
+const handleMoveActor = (gameState, action) => {
+    const dir = action.dir;
+    const room = gameState.location.rooms[gameState.player.roomCoords.roomIndex];
+    const dimensionality = room.dimensionality;
+    const { x, y } = gameState.player.roomCoords;
+    const dX = dir === 'left' ? -1 : dir === 'right' ? 1 : 0;
+    const dY = dir === 'up' ? -1 : dir === 'down' ? 1 : 0;
+    const tileIndex = toIndex({x: x + dX, y: y + dY}, dimensionality);
+    const targetTile = room.tiles[tileIndex];
+
+    if (!targetTile) return {}; //hack - happens due to placement issues on handleMoveRoom
+    
+    if (targetTile.tileType === 'wall') return addLog(gameState, {ctx: 'room', value: 'You kick the wall out of spite. Ow.'});
+
+    if (targetTile.tileType === 'portal') {
+        const edge = x + dX === dimensionality - 1 ? 'right' : x + dX === 0 ? 'left' : y + dY === dimensionality - 1 ? 'bottom' : 'top';
+        return handleMoveRooms(gameState, targetTile.toRoomIndex, dir, edge);
+    }
+
+    if (targetTile.tileType === 'levelPortal') return handleMoveLevels(gameState, targetTile.toLevelIndex);
+
+    const nearbyBeastsCoords = gameState.location.nearbyBeasts.map(({coords}) => toIndex(coords, dimensionality));
+    if (nearbyBeastsCoords.indexOf(tileIndex) > -1) {
+        const beastTarget = gameState.location.nearbyBeasts[nearbyBeastsCoords.indexOf(tileIndex)];
+        const weapon = gameState.player.inventory.filter(item => item.type === 'weapon' && item.isEquipped)[0];
+        const amtFromAttack = rollDie(weapon ? weapon.damage : `1d2+${gameState.player.baseStats.strength}`);
+        const updatedBeast = Object.assign({}, beastTarget, {isTargeted: true, hp: beastTarget.hp - amtFromAttack >= 0 ? beastTarget.hp - amtFromAttack : 0});
+        const msg = updatedBeast.hp > 0 ? `You attack the ${beastTarget.baseTitle}${weapon ? ` with a ${weapon.baseTitle}.` : ''}` : updatedBeast.dyingMessage;
+
+        //update return value: conditionally return new array only if necessary (i.e. passthrough instead of construct new)
+        return {
+            ...addLog(gameState, {ctx: 'room', value: msg}),
+            location: Object.assign({}, gameState.location, {
+                nearbyBeasts: gameState.location.nearbyBeasts.filter(b => b.key !== updatedBeast.key).concat(updatedBeast.hp > 0 ? updatedBeast : [])
+            })
+        };
+    }
+
+    return {
+        player: Object.assign({}, gameState.player, {
+            roomCoords: {
+                x: x + dX,
+                y: y + dY,
+                roomIndex: gameState.player.roomCoords.roomIndex
             }
+        })
+    };
+}
 
-            const nearbyBeastsCoords = gameState.location.nearbyBeasts.map(({coords}) => toIndex(coords, dimensionality));
-            if (nearbyBeastsCoords.indexOf(tileIndex) > -1) {
-                const beastTarget = gameState.location.nearbyBeasts[nearbyBeastsCoords.indexOf(tileIndex)];
-                const weapon = gameState.player.inventory.filter(item => item.type === 'weapon' && item.isEquipped)[0];
-                const amtFromAttack = rollDie(weapon ? weapon.damage : `1d2+${gameState.player.baseStats.strength}`);
-                const updatedBeast = Object.assign({}, beastTarget, {isTargeted: true, hp: beastTarget.hp - amtFromAttack >= 0 ? beastTarget.hp - amtFromAttack : 0});
-                const msg = updatedBeast.hp > 0 ? `You attack the ${beastTarget.baseTitle}${weapon ? ` with a ${weapon.baseTitle}.` : ''}` : updatedBeast.dyingMessage;
-                const gameRest = filteredRest(addLog({ctx: 'room', value: msg}), /location/);
-                const locationRest = filteredRest(gameState.location, /nearbyBeasts/);
 
-                //update return value: conditionally return new array only if necessary (i.e. passthrough instead of construct new)
-                return {
-                    location: {
-                        nearbyBeasts: gameState.location.nearbyBeasts.filter(b => b.key !== updatedBeast.key).concat(updatedBeast.hp > 0 ? updatedBeast : []),
-                        ...locationRest
-                    },
-                    ...gameRest
-                };
-            }
+const partialState = (gameState, action) => {
+    switch (action.type) {
+        case 'printGameState': return addLog(gameState, {ctx: 'console', value: 'Printed gameState'});
 
-            const gameRest = filteredRest(gameState, /player/);
-            const playerRest = filteredRest(gameState.player, /roomCoords/);
-           
-            return {
-                player: {
-                    roomCoords: {
-                        x: x + dX,
-                        y: y + dY,
-                        roomIndex: gameState.player.roomCoords.roomIndex
-                    },
-                    ...playerRest
-                },
-                ...gameRest
-            };
-        }
+        case 'addLog': return addLog(gameState, action);
 
-        case 'adjustHP': { //consider modifying to 'adjustStat'
+        case 'clearRoom': return handleClearRoom(gameState);
+
+        case 'pushBeastToRoom': return handlePushBeastToRoom(gameState, action);
+
+        case 'handleClickTile': return handleClickTile(gameState, action)
+
+        case 'openTargetBeast': return handleOpenTarget(gameState);
+
+        case 'handleTargetBeast': return handleTargetBeast(gameState, action);
+
+        case 'handleMoveActor': return handleMoveActor(gameState, action);
+
+        case 'adjustHP': {
             if (action.targetActor === 'npc') {
                 const loc = gameState.location;
                 const nearbyBeasts = loc.nearbyBeasts;
-                const locationRest = filteredRest(loc, /nearbyBeasts/);
                 const beastTarget = nearbyBeasts.filter(b => b.isTargeted)[0]; //extend to allow looping to damage/apply damage to other creatures (or consider one attack per beast in single dispatch call)
                 
                 const weapon = gameState.player.inventory.filter(item => item.type === 'weapon' && item.isEquipped)[0];
@@ -235,81 +223,51 @@ const gameStateReducer = (gameState, action) => {
                 const updatedBeast = Object.assign({}, beastTarget, {hp: beastTarget.hp - amtFromAttack >= 0 ? beastTarget.hp - amtFromAttack : 0});
                 const msg = updatedBeast.hp > 0 ? `You attack the ${updatedBeast.baseTitle}.` : updatedBeast.dyingMessage;
                 const rollMsg = `Rolled ${weapon.damage} for ${amtFromAttack} damage.`;
-                const gameRest = filteredRest(addLog([{ctx: 'room', value: msg}, {ctx: 'roller', value: rollMsg}]), /(location)/);
-                
+
                 return {
-                    location: {
-                        nearbyBeasts: nearbyBeasts.filter(b => !b.isTargeted).concat(updatedBeast.hp > 0 ? updatedBeast : []),
-                        ...locationRest
-                    },
-                    ...gameRest
+                    ...addLog([{ctx: 'room', value: msg}, {ctx: 'roller', value: rollMsg}]),
+                    location: Object.assign({}, gameState.location, {
+                        nearbyBeasts: nearbyBeasts.filter(b => !b.isTargeted).concat(updatedBeast.hp > 0 ? updatedBeast : [])
+                    })
                 };
             }
-            else {
-                const gameRest = filteredRest(gameState, /player/);
-                const playerRest = filteredRest(gameState.player, /vitalStats/);
-                const vitalStatsRest = filteredRest(gameState.player.vitalStats, /hp/);
-                
-                return {
-                    player: {
-                        vitalStats: {
-                            hp: gameState.player.vitalStats.hp + action.amt,
-                            ...vitalStatsRest
-                        },
-                        ...playerRest
-                    },
-                    ...gameRest
-                }
-            }
-        }
-
-        case 'handleToggleInventory': {
-            gameState.turn -= 1
-            const gameRest = filteredRest(gameState, /focusMode/);
-            
-            return {
-                focusMode: gameState.focusMode === 'inventory' ? null : 'inventory',
-                ...gameRest
+            else return {
+                player: Object.assign({}, gameState.player, {
+                    vitalStats: Object.assign({}, gameState.player.vitalStats, {
+                        hp: gameState.player.vitalStats.hp + action.amt
+                    })
+                })
             };
         }
 
-        case 'handleClosePanel': {
-            gameState.turn -= 1
-            const gameRest = filteredRest(gameState, /focusMode/);
-            
-            return {
-                focusMode: null,
-                ...gameRest
-            }
-        }
+        case 'handleToggleInventory': return {
+            focusMode: gameState.focusMode === 'inventory' ? null : 'inventory'
+        };
 
-        case 'toggleConsole': {
-            gameState.turn -= 1
-            const gameRest = filteredRest(gameState, /focusMode/);
-            const focusMode = gameState.focusMode === 'console' ? null : 'console'
-            
-            return {
-                focusMode,
-                ...gameRest
-            }
-        }
+        case 'handleClosePanel': return {
+            focusMode: null
+        };
+
+        case 'toggleConsole': return {
+            focusMode: gameState.focusMode === 'console' ? null : 'console'
+        };
 
         case 'applyAction': {
             const value = `You ${action.itmAction.type} the ${action.item.baseTitle}${action.target ? ` ${action.target.verb} the ${action.target.baseTitle}` : ''}.`;
-            const gameRest = filteredRest(addLog({ctx: 'room', value}), /player/);
-            const playerRest = filteredRest(gameState.player, /inventory/);
+            
             return {
-                player: {
-                    inventory: action.itmAction.doesRemove ? gameState.player.inventory.filter(item => item.key !== action.item.key) : gameState.player.inventory,
-                    ...playerRest
-                },
-                ...gameRest
-            }
+                ...addLog(gameState, {ctx: 'room', value}),
+                player: Object.assign({}, gameState.player, {
+                    inventory: action.itmAction.doesRemove ? gameState.player.inventory.filter(item => item.key !== action.item.key) : gameState.player.inventory
+                })
+            };
         }
 
         default: throw new Error(`Must include a valid action.type in action ${JSON.stringify(action)}`);
     }
 }
+
+const gameStateReducer = (gameState, action) => Object.assign({}, gameState, partialState(gameState, action));
 
 const GameStateProvider = (props) => {
     const [gameState, dispatchGameState] = useReducer(gameStateReducer, initGameState);
