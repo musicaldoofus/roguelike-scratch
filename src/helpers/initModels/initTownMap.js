@@ -1,19 +1,12 @@
-import generateMap from '../utilityLambdas/generateMap';
-/*
-Room model:
-{
-    id,
-    type,
-    dimensionality,
-    tiles,
-    tunnelDirections,
-    portalIndices
-}
-*/
+import generateMap, { MAP_CONSTANTS } from '../utilityLambdas/generateMap';
 
 const initTownMap = generateMap([
     {
         roomIndex: 0,
+        coords: {
+            x: Math.floor(MAP_CONSTANTS.MAP_VISIBLE_DIMENSIONALITY_MAX / 2),
+            y: Math.floor(MAP_CONSTANTS.MAP_VISIBLE_DIMENSIONALITY_MAX / 2)
+        },
         type: 'building',
         dimensionality: 6,
         portalIndices: { //only allowed 1 index for building types
@@ -22,6 +15,10 @@ const initTownMap = generateMap([
     },
     {
         roomIndex: 1,
+        coords: {
+            x: 0,
+            y: 0
+        },
         type: 'open',
         structsInRoom: [{
             coords: {
@@ -37,6 +34,10 @@ const initTownMap = generateMap([
     },
     {
         roomIndex: 2,
+        coords: {
+            x: MAP_CONSTANTS.MAP_VISIBLE_DIMENSIONALITY_MAX,
+            y: 0
+        },
         type: 'open',
         edges: {
             left: 'open'

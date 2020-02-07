@@ -12,12 +12,14 @@
 .map-display-inner-container {
     margin: auto;
     font-size: 2px;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    align-content: flex-start;
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: relative;
 }
 
-.map-display-tile {
+.map-room-tile {
+    outline: 1px solid black;
     display: block;
+    position: absolute;
 }

@@ -43,7 +43,7 @@
     content: '#';
 }
 
-.map-tile.none::before {
+.map-tile.none::before, .map-tile.openPortal::before {
     top: -50%;
     content: '.';
     left: 50%;
@@ -55,6 +55,13 @@
 }
 
 .map-tile.portal::before {
+    top: -70%;
+    content: '+';
+    left: 50%;
+    font-size: 1.6em;
+}
+
+.map-tile.bldgPortal::before {
     top: -70%;
     content: '+';
     left: 50%;

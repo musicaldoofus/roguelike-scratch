@@ -151,7 +151,7 @@ const handleMoveActor = (gameState, action) => {
 
     if (!targetTile) return {}; //hack - happens due to placement issues on handleMoveRoom
     
-    if (targetTile.tileType === 'wall') return addLog(gameState, {ctx: 'room', value: 'You kick the wall out of spite. Ow.'});
+    if (targetTile.tileType === 'wall' || targetTile.tileType === 'building') return addLog(gameState, {ctx: 'room', value: 'You kick the wall out of spite. Ow.'});
 
     if (targetTile.tileType === 'forest') return addLog(gameState, {ctx: 'room', value: 'The trees look a bit eery to go venturing out by yourself.'})
 
