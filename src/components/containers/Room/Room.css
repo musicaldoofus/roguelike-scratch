@@ -26,8 +26,9 @@
     z-index: 1;
 }
 
-.map-tile.wall {
-    background-color: var(--red-dk-two);
+.map-tile::before, .player::before, .beast::before {
+    position: absolute;
+    transform: translateX(-50%);
 }
 
 .map-tile {
@@ -35,21 +36,41 @@
     position: relative;
 }
 
+.map-tile.wall::before {
+    color: var(--red-dk-two);
+    left: 50%;
+    top: -15%;
+    content: '#';
+}
+
 .map-tile.none::before {
-    position: absolute;
     top: -50%;
     content: '.';
     left: 50%;
-    transform: translateX(-50%);
+    color: var(--gray-two);
+}
+
+.map-tile.portal {
+    background-color: var(--red-lt-gray);
 }
 
 .map-tile.portal::before {
-    position: absolute;
-    top: -43%;
+    top: -70%;
     content: '+';
-    left: 44%;
-    transform: translateX(-50%);
-    font-size: 1.2em;
+    left: 50%;
+    font-size: 1.6em;
+}
+
+.map-tile.forest::before {
+    content: "^";
+    left: 50%;
+}
+
+.map-tile.building::before {
+    content: "##";
+    left: 50%;
+    top: -26%;
+    color: var(--red-dk-three);
 }
 
 .beast,
@@ -61,27 +82,25 @@
     position: relative;
 }
 
-.beast::after,
-.player::after {
-    position: absolute;
+.beast::before,
+.player::before {
     top: -4px;
     left: 50%;
-    transform: translateX(-50%);
 }
 
-.player::after {
+.player::before {
     content: '@';
 }
 
-.beast.cave-spider::after {
+.beast.cave-spider::before {
     content: 'S';
 }
 
-.beast.cave-rat::after {
+.beast.cave-rat::before {
     content: 'R';
 }
 
-.beast.un-beast::after {
+.beast.un-beast::before {
     content: 'U';
 }
 

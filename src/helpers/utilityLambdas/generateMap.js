@@ -1,48 +1,144 @@
+import toCoords, { toIndex } from '../utilityLambdas/toCoords';
+
 const MAP_CONSTANTS = {
     MAP_DIMENSIONALITY: 80,
+    MAP_VISIBLE_DIMENSIONALITY_MAX: 30,
     ROOM_DIMENSIONALITY_MIN: 7,
     ROOM_DIMENSIONALITY_MAX: 25,
-    ROOM_LEVEL_PORTAL_MAX: 1
+    ROOM_LEVEL_PORTAL_MAX: 1,
+    SHOP_DIMENSIONALITY_MAX: 20,
+    SHOP_DIMENSIONALITY_MIN: 8,
+    BUILDING_DIMENSIONALITY_HEIGHT: 3,
+    BUILDING_DIMENSIONALITY_WIDTH: 5
 };
 
-const generateRoom = (coords, roomIndex, tunnelFromDir) => {
-    //console.log('tunnelFromDir', tunnelFromDir);
+const isEdge = (i, dimensionality) => {
+    if (i <= dimensionality) return 'top';
+    else if (i % dimensionality === 0) return 'left';
+    else if(i % dimensionality === (dimensionality - 1)) return 'right';
+    else if (i >= (dimensionality ** 2) - dimensionality) return 'bottom';
+    else return false;
+}
+
+const generateRoom = ({coords, roomIndex, tunnelFromDir, type, edges, structsInRoom, dimensionality, portalIndices}) => {
+    if (type === 'building') {
+        const tiles = Array.from({length: dimensionality ** 2}, (_, i) => {
+            if (isEdge(i, dimensionality)) {
+                if (Object.keys(portalIndices).filter(k => portalIndices[k] === i).length > 0) return {
+                    tileType: 'portal',
+                    toRoomIndex: roomIndex + 1 //improve
+                };
+
+                return {
+                    tileType: 'wall'
+                };
+            }
+            
+            return {
+                tileType: 'none'
+            };
+        });
+        return {
+            id: roomIndex,
+            type,
+            dimensionality,
+            tiles,
+            portalIndices //consider adding mapCoords
+        }
+    }
+
+    if (type === 'open') {
+        const roomDimensionality = dimensionality ? dimensionality : MAP_CONSTANTS.MAP_VISIBLE_DIMENSIONALITY_MAX;
+        const openBldgCoords = [{ //extend - calculate based on available space
+            x: 12,
+            y: 20
+        }];
+        
+        //console.log('r, s.coords, bx, by', randBldgCoord, structsInRoom[0].coords, bldgX, bldgY)
+
+        
+
+        const bldgIndices = !structsInRoom ? []
+            : (() => {
+                const randBldgCoord = structsInRoom[0].coords ? structsInRoom[0].coords : openBldgCoords[Math.floor(Math.random() * openBldgCoords.length)];
+                const bldgX = randBldgCoord.x;
+                const bldgY = randBldgCoord.y;
+                
+                return Array.from({length: MAP_CONSTANTS.BUILDING_DIMENSIONALITY_HEIGHT}, (_, hInd) => {
+                    return Array.from({length: MAP_CONSTANTS.BUILDING_DIMENSIONALITY_WIDTH}, (_, wInd) => {
+                        return toIndex({x: bldgX + wInd, y: bldgY + hInd}, roomDimensionality);
+                    })
+                }).flat();
+            })();
+
+        const tiles = Array.from({length: roomDimensionality ** 2}, (_, i) => {
+            if (bldgIndices.indexOf(i) > -1) {
+                if (structsInRoom && i === bldgIndices[structsInRoom[0].portalIndex]) {
+                    //const toRoomCoords = toCoords(structsInRoom[0].portalIndex, dimensionality)
+                    return {
+                        tileType: 'bldgPortal',
+                        toRoomIndex: structsInRoom[0].roomIndex,
+                        //toRoomCoords
+                    };
+                }
+                
+                return {
+                    tileType: 'building'
+                };
+            }
+            const edge = isEdge(i, roomDimensionality);
+            if (edge) {
+                if (edges && (
+                    (edge === 'top' && edges.top === 'open') ||
+                    (edge === 'right' && edges.right === 'open') ||
+                    (edge === 'bottom' && edges.bottom === 'open') ||
+                    (edge === 'left' && edges.left === 'open')
+                )) return {
+                    tileType: 'openPortal',
+                    toRoomIndex: roomIndex + (edge === 'top' || edge === 'left' ? -1 : 1)
+                }
+                return {
+                    tileType: 'forest'
+                };
+            }
+            return {
+                tileType: 'none'
+            };
+        });
+
+        const roomPortalIndices = portalIndices ? portalIndices : {
+            right: Array.from({length: roomDimensionality}, (_, i) => (i + 1) * roomDimensionality - 1).filter(i => i !== roomDimensionality - 1 && i !== roomDimensionality ** 2 - 1) //extend - static, only targets right side open
+        }
+
+        return {
+            id: roomIndex,
+            edges,
+            type,
+            dimensionality: roomDimensionality,
+            tiles,
+            portalIndices: roomPortalIndices, //consider adding mapCoords
+            structsInRoom
+        };
+    }
+
     const getAvailWidth = () => MAP_CONSTANTS.MAP_DIMENSIONALITY - coords.x;
     const getAvailHeight = () => MAP_CONSTANTS.MAP_DIMENSIONALITY - coords.y;
-    //console.log('getAvailWidth', getAvailWidth(), 'getAvailHeight', getAvailHeight())
     if (getAvailHeight() < MAP_CONSTANTS.ROOM_DIMENSIONALITY_MIN || getAvailWidth() < MAP_CONSTANTS.ROOM_DIMENSIONALITY_MIN) return null;
     
-    const id = 0; //increment
-    const type = 'none'; //develop - could be patterns of room tiles/different room building algorithm (none|swarm|pit|maze|shrine|...)
+    const id = roomIndex; //improve - increment & use toRoomId(room.id) instead of toRoomIndex(roomIndex)
     const upperBound = MAP_CONSTANTS.ROOM_DIMENSIONALITY_MAX + 1;
     const delta = upperBound - MAP_CONSTANTS.ROOM_DIMENSIONALITY_MIN;
     const largestDimensionality = Math.floor(Math.random() * delta) + MAP_CONSTANTS.ROOM_DIMENSIONALITY_MIN;
-    const dimensionality = Math.min(largestDimensionality, getAvailHeight(), getAvailWidth());
-    const isEdge = (i) => {
-        if (i <= dimensionality) return 'top';
-        else if (i % dimensionality === 0) return 'left';
-        else if(i % dimensionality === (dimensionality - 1)) return 'right';
-        else if (i >= (dimensionality ** 2) - dimensionality) return 'bottom';
-        else return false;
-    }
-
+    const roomDimensionality = Math.min(largestDimensionality, getAvailHeight(), getAvailWidth());
     const tunnelDirections = [
         getAvailHeight() >= MAP_CONSTANTS.ROOM_DIMENSIONALITY_MIN ? 'down' : null,
         getAvailWidth() >= MAP_CONSTANTS.ROOM_DIMENSIONALITY_MIN ? 'right' : null
     ].filter(dir => dir !== null);
 
-    //extend - depend on rules for portals (i.e. amt per wall and direction)
-    const topPortalIndex = tunnelFromDir === 'down' ? Math.floor(Math.random() * (dimensionality - 4)) + 1 : null;
-    const leftPortalIndex = tunnelFromDir === 'right' ? dimensionality * Math.floor(Math.random() * (dimensionality - 4) + 2) : null;
-    const rightPortalIndex = tunnelDirections.indexOf('right') > - 1 ? (dimensionality * Math.floor(Math.random() * (dimensionality - 4) + 2)) - 1 : null;
-    const bottomPortalIndex = tunnelDirections.indexOf('down') > - 1 ? (dimensionality ** 2) - Math.floor(Math.random() * (dimensionality - 4) + 2) : null;
-    /*
-    extend:
-    portalIndex = {
-        index: ${indexInList},
-        toRoomIndex: ${roomIndexPointer}
-    }
-    */
+    const topPortalIndex = tunnelFromDir === 'bottom' ? Math.floor(Math.random() * (roomDimensionality - 4)) + 1 : null;
+    const leftPortalIndex = tunnelFromDir === 'right' ? roomDimensionality * Math.floor(Math.random() * (roomDimensionality - 4) + 2) : null;
+    const rightPortalIndex = tunnelDirections.indexOf('right') > - 1 ? (roomDimensionality * Math.floor(Math.random() * (roomDimensionality - 4) + 2)) - 1 : null;
+    const bottomPortalIndex = tunnelDirections.indexOf('down') > - 1 ? (roomDimensionality ** 2) - Math.floor(Math.random() * (dimensionality - 4) + 2) : null;
     const tunnelDirection = Math.floor(Math.random() * 2) === 0 ? 'right' : 'bottom';
     const indices = {
         top: topPortalIndex,
@@ -50,12 +146,12 @@ const generateRoom = (coords, roomIndex, tunnelFromDir) => {
         right: tunnelDirection === 'right' ? rightPortalIndex : null,
         bottom: tunnelDirection === 'bottom' ? bottomPortalIndex : null
     };
-    const portalIndices = Object.fromEntries(Object.keys(indices).filter(k => indices[k] !== null).map(k => [k, indices[k]]));
+    const roomPortalIndices = Object.fromEntries(Object.keys(indices).filter(k => indices[k] !== null).map(k => [k, indices[k]]));
 
-    const tiles = Array.from({length: dimensionality ** 2}, (_, i) => {
-        const edge = isEdge(i);
+    const tiles = Array.from({length: roomDimensionality ** 2}, (_, i) => {
+        const edge = isEdge(i, roomDimensionality);
         const isAcceptableTunnelDirection = edge === tunnelDirection || edge === 'left' || edge === 'top';
-        const isPortal = portalIndices[edge] === i && isAcceptableTunnelDirection;
+        const isPortal = roomPortalIndices[edge] === i && isAcceptableTunnelDirection;
         const tileType = isPortal ? 'portal': !edge ? 'none' : 'wall';
         if (isPortal) return {
             tileType,
@@ -68,23 +164,69 @@ const generateRoom = (coords, roomIndex, tunnelFromDir) => {
 
     return {
         id,
-        type,
-        dimensionality,
+        type: type ? type : 'none',
+        dimensionality: roomDimensionality,
         tiles,
         tunnelDirections,
-        portalIndices
+        tunnelDirection,
+        portalIndices: roomPortalIndices //consider adding mapCoords
     };
 }
 
-const generateMap = () => {
+const generateMap = (roomsConfig) => {
     const initCoords = {
         x: 4,
         y: 4
     };
+    const toLinkedRooms = (room) => {
+        console.log('generate room from ', room);
+        return Object.assign({}, room, {
+            tiles: room.tiles.map((tile, i) => {
+                if ((tile.tileType === 'portal' || tile.tileType === 'openPortal' || tile.tileType === 'bldgPortal') && !tile.hasOwnProperty('toRoomCoords')) {
+                    const fromEdge = Object.keys(room.portalIndices).filter(edge => room.portalIndices[edge] === i)[0];
+                    const oppositeSide = fromEdge === 'right' ? 'left' : fromEdge === 'left' ? 'right' : fromEdge === 'top' ? 'bottom' : 'top';
+                    const targetRoom = rooms[tile.toRoomIndex];
+                    
+                    if (!targetRoom) {
+                        return {
+                            tileType: 'wall'
+                        };
+                    }
 
-    const generateRooms = (coords, roomIndex, tunnelFromDir) => {
-        const room = generateRoom(coords, roomIndex, tunnelFromDir);
-        if (!room) return;
+                    /*
+                    if tile.tileType === 'openPortal': targetRoom.edges === 'right' ? x: 1 , y: player.roomCoords.y : 
+                    */
+
+                    const targetPortalIndex = targetRoom.type === 'open' && tile.tileType !== 'openPortal' ?
+                        toIndex(targetRoom.structsInRoom[0].coords, targetRoom.dimensionality) + targetRoom.structsInRoom[0].portalIndex
+                        : targetRoom.type === 'building' ?
+                            targetRoom.portalIndices[Object.keys(targetRoom.portalIndices)[0]]
+                            : targetRoom.portalIndices[oppositeSide];
+
+                    //console.log('targetPortalIndex', targetRoom, tile.toRoomIndex, targetPortalIndex, tile.tileType);
+                    
+                    const { x, y } = tile.tileType === 'openPortal' ? 
+                        {
+                            x: targetRoom.edges && targetRoom.edges.left === 'open' ? 1 : targetRoom.dimensionality - 2,
+                            y: toCoords(i, targetRoom.dimensionality).y
+                        }
+                        : toCoords(targetPortalIndex, targetRoom.dimensionality);
+                    
+                    return Object.assign({}, tile, {
+                        toRoomCoords: {
+                            x,
+                            y
+                        }
+                    });
+                }
+
+                return tile;
+            })
+        });
+    }
+    const generateRooms = ({coords, roomIndex, tunnelFromDir}) => {
+        const room = generateRoom({coords, roomIndex, tunnelFromDir});
+        if (!room) return undefined;
         else {
             const dir = room.tunnelDirections[Math.floor(Math.random() * room.tunnelDirections.length)];
             const nextCoords = {
@@ -92,26 +234,17 @@ const generateMap = () => {
                 y: dir === 'down' ? coords.y + room.dimensionality : coords.y
             };
             return [].concat(room)
-                .concat(generateRooms(nextCoords, roomIndex + 1, dir))
+                .concat(generateRooms({coords: nextCoords, roomIndex: roomIndex + 1, tunnelFromDir: room.tunnelDirection}))
                 .filter(r => r !== undefined);
         }
     }
+    const rooms = roomsConfig
+        ? roomsConfig.map(r => generateRoom(r))
+        : generateRooms({coords: initCoords, roomIndex: 0})
 
-    return generateRooms(initCoords, 0).map(room => {
-        const tiles = room.tiles.map(tile => {
-            return tile.tileType === 'portal' && tile.toRoomIndex > room.tiles.length ? { tileType: 'wall' } : tile; 
-        });
-        const portalIndices = Object.fromEntries(Object.keys(room.portalIndices)
-            .map(k => [k, room.portalIndices[k]])
-            .filter(tileIndex => {
-                const tile = room.tiles[tileIndex[1]];
-                if (tile.tileType === 'portal' && tile.toRoomIndex > room.tiles.length) return false;
-                return true;
-            })
-        );
-        return Object.assign({}, room, { tiles }, { portalIndices });
-    });
+    console.log('rooms', rooms);
+    return rooms.map(toLinkedRooms);
 }
 
 export default generateMap;
-export { generateRoom };
+export { generateRoom, MAP_CONSTANTS };
