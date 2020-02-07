@@ -1,6 +1,6 @@
 import generateMap, { MAP_CONSTANTS } from '../utilityLambdas/generateMap';
 
-const initTownMap = generateMap([
+const initTownMap = generateMap(0, [
     {
         roomIndex: 0,
         coords: {

@@ -80,6 +80,10 @@
     color: var(--red-dk-three);
 }
 
+.map-tile.levelPortal::before {
+    content: ">";
+}
+
 .beast,
 .player {
     display: flex;

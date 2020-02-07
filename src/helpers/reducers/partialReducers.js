@@ -31,8 +31,8 @@ const handleTargetBeast = (gameState, action) => {
     }
 }
 
-const handleMoveLevel = (gameState, action) => {
-    const rooms = generateMap();
+const handleMoveLevel = (gameState, toLevelIndex) => {
+    const rooms = generateMap(toLevelIndex);
     const randomRoomIndex = Math.floor(Math.random() * rooms.length);
     const randomRoom = rooms[randomRoomIndex];
     const openSpacesInRoom = randomRoom.tiles
@@ -47,7 +47,7 @@ const handleMoveLevel = (gameState, action) => {
     return {
         location: Object.assign({}, gameState.location, {
             rooms,
-            level: action.levelIndex,
+            level: toLevelIndex,
             nearbyBeasts
         }),
         player: Object.assign({}, gameState.player, {

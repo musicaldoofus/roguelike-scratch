@@ -12,7 +12,7 @@ const MapDisplay = () => {
             width: `${room.dimensionality}em`,
             height: `${room.dimensionality}em`,
             backgroundColor: isPlayerInRoom ? 'var(--red-dk-one)' : 'var(--red-dk-two)',
-            top: `${room.coords.y}em`,
+            top: `${room.coords.y }em`,
             left: `${room.coords.x}em`
         };
         return (

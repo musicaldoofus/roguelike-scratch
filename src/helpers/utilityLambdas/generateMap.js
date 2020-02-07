@@ -1,10 +1,10 @@
 import toCoords, { toIndex } from '../utilityLambdas/toCoords';
 
 const MAP_CONSTANTS = {
-    MAP_DIMENSIONALITY: 80,
+    MAP_DIMENSIONALITY: 100,
     MAP_VISIBLE_DIMENSIONALITY_MAX: 30,
-    ROOM_DIMENSIONALITY_MIN: 7,
-    ROOM_DIMENSIONALITY_MAX: 25,
+    ROOM_DIMENSIONALITY_MIN: 6,
+    ROOM_DIMENSIONALITY_MAX: 30,
     ROOM_LEVEL_PORTAL_MAX: 1,
     SHOP_DIMENSIONALITY_MAX: 20,
     SHOP_DIMENSIONALITY_MIN: 8,
@@ -21,7 +21,6 @@ const isEdge = (i, dimensionality) => {
 }
 
 const generateRoom = ({coords, roomIndex, tunnelFromDir, type, edges, structsInRoom, dimensionality, portalIndices}) => {
-    console.log('coords', coords);
     if (type === 'building') {
         //dependencies: [dimensionality, portalIndices, roomIndex]
         const tiles = Array.from({length: dimensionality ** 2}, (_, i) => {
@@ -174,14 +173,63 @@ const generateRoom = ({coords, roomIndex, tunnelFromDir, type, edges, structsInR
     };
 }
 
-const generateMap = (roomsConfig) => {
+const generateMap = (level, roomsConfig) => {
     const initCoords = {
         x: 4,
         y: 4
     };
-    const toLinkedRooms = (room) => {
+    const generateRooms = ({coords, roomIndex, tunnelFromDir}) => {
+        const room = generateRoom({coords, roomIndex, tunnelFromDir});
+        if (!room) return undefined;
+        else {
+            //const dir = room.tunnelDirections[Math.floor(Math.random() * room.tunnelDirections.length)];
+            const nextCoords = {
+                x: room.tunnelDirection === 'right' ? coords.x + room.dimensionality : coords.x,
+                y: room.tunnelDirection === 'bottom' ? coords.y + room.dimensionality : coords.y
+            };
+            //console.log('prev coords, dir, dimensionality, new coords', coords, room.tunnelDirection, room.dimensionality, nextCoords);
+            return [].concat(room)
+                .concat(generateRooms({coords: nextCoords, roomIndex: roomIndex + 1, tunnelFromDir: room.tunnelDirection}))
+                .filter(r => r !== undefined);
+        }
+    }
+
+    const rooms = roomsConfig
+        ? roomsConfig.map(r => generateRoom(r))
+        : generateRooms({coords: initCoords, roomIndex: 0})
+
+    const roomsWithLevelPortal = [ //can be same room
+        Math.floor(Math.random() * rooms.length), //up level portal
+        Math.floor(Math.random() * rooms.length) //down level portal
+    ];
+
+    console.log('roomsWithLevelPortal', roomsWithLevelPortal);
+
+    const toLinkedRooms = (room, rInd) => {
+        const levelPortalIndex = roomsWithLevelPortal.indexOf(rInd) > -1 ? (() => {
+            console.log('roomInd', rInd, 'to add portal')
+            const openSpaces = room.tiles
+                .map(({tileType}, i) => ({tileType, i}))
+                .filter(t => t.tileType === 'none')
+                .map(({i}) => i);
+                console.log('open', openSpaces);
+            return Math.floor(Math.random() * openSpaces.length);
+        })()
+        : null;
+
+        console.log('levelPortalIndex', rInd, levelPortalIndex, roomsWithLevelPortal)
+
         return Object.assign({}, room, {
             tiles: room.tiles.map((tile, i) => {
+                if (i === levelPortalIndex) {
+                    const levelDirection = roomsWithLevelPortal.indexOf(i) === 0 ? -1 : 1;
+                    console.log('levelDirection', levelDirection);
+                    return {
+                        tileType: 'levelPortal',
+                        toLevelIndex: level + levelDirection
+                    }
+                }
+
                 if ((tile.tileType === 'portal' || tile.tileType === 'openPortal' || tile.tileType === 'bldgPortal') && !tile.hasOwnProperty('toRoomCoords')) {
                     const fromEdge = Object.keys(room.portalIndices).filter(edge => room.portalIndices[edge] === i)[0];
                     const oppositeSide = fromEdge === 'right' ? 'left' : fromEdge === 'left' ? 'right' : fromEdge === 'top' ? 'bottom' : 'top';
@@ -221,26 +269,6 @@ const generateMap = (roomsConfig) => {
         });
     }
 
-    const generateRooms = ({coords, roomIndex, tunnelFromDir}) => {
-        const room = generateRoom({coords, roomIndex, tunnelFromDir});
-        if (!room) return undefined;
-        else {
-            //const dir = room.tunnelDirections[Math.floor(Math.random() * room.tunnelDirections.length)];
-            const nextCoords = {
-                x: room.tunnelDirection === 'right' ? coords.x + room.dimensionality : coords.x,
-                y: room.tunnelDirection === 'bottom' ? coords.y + room.dimensionality : coords.y
-            };
-            console.log('prev coords, dir, dimensionality, new coords', coords, room.tunnelDirection, room.dimensionality, nextCoords);
-            return [].concat(room)
-                .concat(generateRooms({coords: nextCoords, roomIndex: roomIndex + 1, tunnelFromDir: room.tunnelDirection}))
-                .filter(r => r !== undefined);
-        }
-    }
-    const rooms = roomsConfig
-        ? roomsConfig.map(r => generateRoom(r))
-        : generateRooms({coords: initCoords, roomIndex: 0})
-
-    //console.log('rooms', rooms);
     return rooms.map(toLinkedRooms);
 }
 
