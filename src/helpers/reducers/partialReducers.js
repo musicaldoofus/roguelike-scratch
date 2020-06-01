@@ -43,8 +43,11 @@ const handleMoveLevel = (gameState, toLevelIndex) => {
     const targetTileIndex = Math.floor(Math.random() * openSpacesInRoom.length);
     const { x, y } = toCoords(openSpacesInRoom[targetTileIndex], randomRoom.dimensionality);
     const nearbyBeasts = [];
-
+    const levelDirection = toLevelIndex > gameState.location.level ? 'down' : 'up';
+    const msg = `You head ${levelDirection} the stairs.`;
+    
     return {
+        ...addLog(gameState, {ctx: 'room', value: msg}),
         location: Object.assign({}, gameState.location, {
             rooms,
             level: toLevelIndex,
